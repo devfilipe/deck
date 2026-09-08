@@ -446,7 +446,7 @@ produces the same chain of work and the same questions.
 | `ask` (new, list, show, resolve) | The question the catalog has no entry for, recorded and outliving the session |
 | `console` · `ui` · `statusline` | Watching and steering from beside or inside a session |
 
-747 checks cover this, against a synthetic workspace built in a temp directory:
+756 checks cover this, against a synthetic workspace built in a temp directory:
 `./ci/smoke.sh`.
 
 | Written, not yet proven | |
@@ -457,7 +457,7 @@ produces the same chain of work and the same questions.
 | Proven end to end | |
 |---|---|
 | `/deck:board` workflow | Run twice on a five-task board: eleven agents, four groups, every task committed and green. Not run against a workspace anyone depends on |
-| GitHub as the board | deck's own board is GitHub Issues, read through `type: github` with the token resolved by `token_command`. `list`, `plan`, `show`, `claim` and `done` all run against the live service. The crossing cost four findings, and they are one shape — it loses something and says nothing: `doctor` reported a healthy tracker as a missing file; `claim` reported an assignment GitHub had silently discarded, because the write path was the one place that took a 2xx for an answer without reading the body; a task read from a tracker carries no acceptance criteria, so `board done` skips a guard a file board makes it honour; and `in-progress` has nowhere to go in a two-state tracker, so a task somebody holds still lists as free. The first two are fixed; the other two are open |
+| GitHub as the board | deck's own board is GitHub Issues, read through `type: github` with the token resolved by `token_command`. `list`, `plan`, `show`, `claim` and `done` all run against the live service. The crossing cost four findings, and they are one shape — it loses something and says nothing: `doctor` reported a healthy tracker as a missing file; `claim` reported an assignment GitHub had silently discarded, because the write path was the one place that took a 2xx for an answer without reading the body; a task read from a tracker carries no acceptance criteria, so `board done` skips a guard a file board makes it honour; and `in-progress` had nowhere to go in a two-state tracker, so a task somebody held still listed as free — a source now says how its board writes that down (`in_progress: assignee` or `in_progress: label:<name>`), and a source that says nothing is marked as two-state rather than read as unclaimed. Three are fixed; the acceptance criteria one is open |
 
 | Designed, not built | |
 |---|---|

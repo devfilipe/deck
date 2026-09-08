@@ -1496,6 +1496,109 @@ else
 fi
 rm -rf "$DW"
 
+# ---- a task somebody holds does not look like one nobody holds
+# deck has three states and a GitHub issue has two, so `in-progress` never came
+# back and every tracked task rendered `[ ]`. The assignee was read the whole
+# time — `_task` carries it — and thrown away at the render, so a board with
+# four claimed issues told the next person all four were free.
+#
+# deck does not guess. Reading "assigned" as "in progress" is wrong for every
+# team that assigns before starting, so the source says how its board writes it
+# down, and a source that says nothing is a source that cannot express it.
+note "a claimed task is visibly claimed"
+IP="$(mktemp -d)"; mkdir -p "$IP/.deck"
+cp "$REPO/plugins/deck/templates/workspace/toggles.yaml" "$IP/.deck/toggles.yaml"
+# Its own stand-in. The shared one serves two issues and a check asserts that
+# count, and neither of the two is open *and* assigned — which is the one shape
+# this group is about. Borrowing it would have meant testing a case the fixture
+# cannot produce, which is how the first draft of these checks passed for the
+# wrong reason.
+python3 - "$IP/port" <<'PY' &
+import http.server, json, pathlib, sys, threading
+ISSUES = [
+    {"number": 11, "title": "held and open", "state": "open", "labels": [{"name": "wip"}],
+     "assignee": {"login": "ana"}, "html_url": "http://x/11", "body": ""},
+    {"number": 12, "title": "free and open", "state": "open", "labels": [],
+     "assignee": None, "html_url": "http://x/12", "body": ""},
+    {"number": 13, "title": "assigned and closed", "state": "closed", "labels": [],
+     "assignee": {"login": "bob"}, "html_url": "http://x/13", "body": ""},
+]
+class H(http.server.BaseHTTPRequestHandler):
+    def log_message(self, *a): pass
+    def do_GET(self):
+        if not self.path.startswith("/search/issues"):
+            body = json.dumps({"message": f"no endpoint {self.path}"}).encode(); code = 404
+        else:
+            body = json.dumps({"total_count": len(ISSUES), "items": ISSUES}).encode(); code = 200
+        self.send_response(code); self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+pathlib.Path(sys.argv[1]).write_text(str(srv.server_port))
+srv.serve_forever()
+PY
+IP_PID=$!
+for _ in $(seq 1 50); do [ -s "$IP/port" ] && break; sleep 0.1; done
+IP_PORT="$(cat "$IP/port" 2>/dev/null)"
+if [ -z "$IP_PORT" ]; then bad "the in-progress stand-in came up" "no port file"; fi
+ip_source() {  # <extra keys, or empty>
+  cat > "$IP/.deck/workspace.yaml" <<YAML
+version: 1
+repos: {}
+targets: []
+backlog:
+  - { type: github, repo: acme/api, api: "http://127.0.0.1:$IP_PORT"${1:+, $1} }
+YAML
+}
+ip() { env DECK_ROOT="$IP" DECK_TOKEN_GITHUB=smoke-token "$DECK" "$@"; }
+
+ip_source ""
+und="$(ip board list 2>&1 || true)"
+if printf '%s' "$und" | grep -q 'held by ana'; then
+  ok "the assignee deck already reads is printed, whatever the source can express"
+else bad "the assignee deck already reads is printed, whatever the source can express" "$und"; fi
+if printf '%s' "$und" | grep -q 'two states, so'; then
+  ok "and a source that cannot say a task is taken says so, once"
+else bad "and a source that cannot say a task is taken says so, once" "$und"; fi
+if printf '%s' "$und" | grep -q 'in_progress: assignee'; then
+  ok "and names how to say it, so the note is actionable"
+else bad "and names how to say it, so the note is actionable" "$und"; fi
+# Undeclared, an assigned task is still `[ ]`: deck will not read an assignee as
+# a state the board never claimed to express.
+if printf '%s' "$und" | grep -qE '^  \[~\]'; then
+  bad "an undeclared source does not gain a state deck invented for it" "$und"
+else ok "an undeclared source does not gain a state deck invented for it"; fi
+
+ip_source 'in_progress: assignee'
+dec="$(ip board list 2>&1 || true)"
+if printf '%s' "$dec" | grep -qE '^  \[~\].*docs|^  \[~\]'; then
+  ok "a source that says assigned means taken marks the task taken"
+else bad "a source that says assigned means taken marks the task taken" "$dec"; fi
+if printf '%s' "$dec" | grep -q 'two states, so'; then
+  bad "and the note goes away, having been answered" "$dec"
+else ok "and the note goes away, having been answered"; fi
+
+# A label is the other way a board writes it down, and it is not the assignee:
+# a task can be labelled without being assigned, and that is somebody's system.
+ip_source 'in_progress: "label:wip"'
+lab="$(ip board list 2>&1 || true)"
+if printf '%s' "$lab" | grep -qE '^  \[~\]'; then
+  ok "a label the source names is read as taken too"
+else bad "a label the source names is read as taken too" "$lab"; fi
+ip_source 'in_progress: "label:nobody-uses-this"'
+nolab="$(ip board list 2>&1 || true)"
+if printf '%s' "$nolab" | grep -qE '^  \[~\]'; then
+  bad "and a label nothing carries marks nothing" "$nolab"
+else ok "and a label nothing carries marks nothing"; fi
+# Closed stays closed. A held task and a finished one are different answers.
+if printf '%s' "$dec" | grep -qE '^  \[x\]'; then
+  ok "a closed task is still closed, whatever the source says about taken"
+else bad "a closed task is still closed, whatever the source says about taken" "$dec"; fi
+# `$!`, never `%1`. A job number is the shell's, not this group's, and the
+# first draft of this killed the shared stand-in every other tracker check
+# depends on — twenty-five reds in groups that had nothing to do with it.
+kill "$IP_PID" 2>/dev/null || true
+rm -rf "$IP"
+
 note "a tracker write reports what the tracker recorded"
 # GitHub answers 201 and an issue object for an assignment it is about to
 # discard, so the status line says nothing about what happened and the only

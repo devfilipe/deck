@@ -717,7 +717,7 @@ that matter in the second category.
 ## 10. Testing
 
 `ci/smoke.sh` builds a synthetic workspace and an example pack in `mktemp -d`
-and exercises the observable behaviour: 747 checks covering resolution,
+and exercises the observable behaviour: 756 checks covering resolution,
 importers, precedence, pack composition, vendoring and re-checking what was
 vendored, the coupling edge that carries no order, scopes and what they refuse
 to hide,

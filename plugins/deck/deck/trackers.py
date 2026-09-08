@@ -193,6 +193,40 @@ def _request(
     return json.loads(text) if text.strip() else {}
 
 
+def in_progress_from(source: dict, status: str, assignee, labels: list[str] | None) -> str:
+    """Whether this task is held, as the source itself says it expresses that.
+
+    deck has three states and a GitHub issue has two, so `in-progress` cannot
+    come back from one unless something says how that board writes it down. deck
+    does not guess: assigning before starting is a real way to work, and reading
+    an assignee as "in progress" would be wrong for every team that does it.
+
+    So the descriptor says, per source:
+
+        in_progress: assignee        anyone assigned is on it
+        in_progress: label:wip       this label is what "taken" means here
+        (absent)                     this board cannot express it
+
+    Absent is not a failure. It is a board with two states, and saying so beats
+    inventing a third — `deck board list` marks it rather than showing a held
+    task as free.
+    """
+    if status != "open":
+        return status
+    how = norm(source.get("in_progress", "")).strip()
+    if how == "assignee":
+        return "in-progress" if assignee else "open"
+    if how.startswith("label:"):
+        wanted = how.split(":", 1)[1].strip()
+        return "in-progress" if wanted and wanted in [norm(x) for x in (labels or [])] else "open"
+    return "open"
+
+
+def two_state(source: dict) -> bool:
+    """Does this source lack any way to say a task is taken?"""
+    return norm(source.get("type", "")) in FETCH and not norm(source.get("in_progress", "")).strip()
+
+
 def _task(ident, title, status, repos, url=None, assignee=None, labels=None, provider=None) -> dict:
     return {
         "id": norm(ident),
@@ -252,7 +286,12 @@ def fetch_github(source: dict, known: list[str]) -> tuple[list[dict], list[str]]
             _task(
                 f"#{item['number']}",
                 item.get("title", ""),
-                "done" if item.get("state") == "closed" else "open",
+                in_progress_from(
+                    source,
+                    "done" if item.get("state") == "closed" else "open",
+                    (item.get("assignee") or {}).get("login"),
+                    labels,
+                ),
                 _repos_from(f"{item.get('title', '')} {item.get('body', '')}", known),
                 item.get("html_url"),
                 (item.get("assignee") or {}).get("login"),
@@ -282,7 +321,12 @@ def fetch_gitlab(source: dict, known: list[str]) -> tuple[list[dict], list[str]]
             _task(
                 f"#{item['iid']}",
                 item.get("title", ""),
-                "done" if item.get("state") == "closed" else "open",
+                in_progress_from(
+                    source,
+                    "done" if item.get("state") == "closed" else "open",
+                    (item.get("assignee") or {}).get("username"),
+                    item.get("labels", []),
+                ),
                 _repos_from(f"{item.get('title', '')} {item.get('description', '')}", known),
                 item.get("web_url"),
                 (item.get("assignee") or {}).get("username"),

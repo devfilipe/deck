@@ -84,7 +84,14 @@ already uses — Jira, GitLab, GitHub, Gerrit — and that is also its whole ans
 to working together: the tracker is the shared state. It is already audited,
 already has permissions, and already outlives a laptop. A task someone else has
 claimed is refused, because two agents on one task produce a merge nobody can
-review.
+review — and a claimed task is *shown* as claimed, which is the half that makes
+the refusal useful before you run into it.
+
+A tracker with two states cannot say a task is taken. deck does not guess:
+assigning before starting is a real way to work, so the source says how its own
+board writes it down — `in_progress: assignee`, or `in_progress: label:wip` —
+and a source that says nothing is marked as two-state rather than read as
+nobody being on it.
 
 **Autonomy becomes adjustable.** A profile moves the whole posture in one phrase
 — ask more and verify to the end for someone new, take the short path for a
@@ -272,7 +279,7 @@ Early, and specific about it.
 | Workspace resolution · registry importers · impact graph · scopes · toggles and profiles · pack scaffolding, composition and vendoring · mounting · gate ladder · measurements over time · board planning · the merge-readiness bundle · cost reporting · console, status line, tmux surfaces | The `/deck:board` workflow against a workspace anyone depends on — it has run end to end twice, on a sandbox board | Dynamic packs: task-scoped artifacts an agent writes and a human promotes |
 
 ```bash
-./ci/smoke.sh    # 747 checks against a synthetic workspace; touches nothing of yours
+./ci/smoke.sh    # 756 checks against a synthetic workspace; touches nothing of yours
 ```
 
 ## License

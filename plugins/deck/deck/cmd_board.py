@@ -49,12 +49,33 @@ def cmd_board_list(ws: Workspace, args) -> int:
     if ws.scope_name:
         print(_scope_line(ws))
     for task in tasks:
-        mark = "x" if task["status"] == "done" else " "
+        # Three marks, not two. `~` is a task somebody holds, and it is the
+        # whole reason this command is worth reading before starting: a board
+        # that shows a claimed task as free sends two people at one task.
+        mark = {"done": "x", "in-progress": "~"}.get(task["status"], " ")
         repos = ", ".join(task["repos"]) or "(no repository named)"
         print(f"  [{mark}] {task['id']:<24} {task['title'][:60]}")
-        print(f"        {repos}")
+        # The assignee was read all along and thrown away at the render. A name
+        # here is the floor: whatever a source can or cannot say about state,
+        # deck knows who holds the task and can print it.
+        held = f"   held by {task['assignee']}" if task.get("assignee") else ""
+        print(f"        {repos}{held}")
     for problem in problems:
         print(f"  ! {problem}")
+
+    # Said once, not per task. A two-state source cannot express `in-progress`,
+    # so an unmarked task there means "not closed" and not "nobody is on it" —
+    # and a reader who does not know that reads the wrong thing silently.
+    blind = [board_lib.norm(src.get("type", "")) for src in ws.backlog_sources() if trackers.two_state(src)]
+    # `ext_provider`, not `_tracked`: the second is an internal marker that
+    # reconciliation strips before the tasks are returned, so a condition on it
+    # is a condition that never fires.
+    if blind and any(t.get("ext_provider") for t in tasks):
+        kinds = ", ".join(sorted(set(blind)))
+        print(f"\n  {kinds}: two states, so `[ ]` here means not closed, not unclaimed.")
+        print("  Say how this board writes it down, in the source:")
+        print("    in_progress: assignee        anyone assigned is on it")
+        print("    in_progress: label:wip       that label is what taken means here")
     return 0
 
 

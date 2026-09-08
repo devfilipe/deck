@@ -52,7 +52,7 @@ branch name names an issue) ·
 `ruff` · `catalog` (the toggle wording) · `docs`
 (every command is named in the documentation, every path they point at exists,
 and the check total they state is the one the suite has) · `smoke` (the suite,
-~747 checks against synthetic workspaces in temporary directories) · `tour` (the
+~756 checks against synthetic workspaces in temporary directories) · `tour` (the
 whole arc, in one workspace, in about two seconds). All six green, or say in the
 pull request which did not run and why.
 
