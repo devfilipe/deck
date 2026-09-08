@@ -1,0 +1,9 @@
+version: 1
+profile: standard
+values:
+  doc_sync: required
+  deploy_mode: none
+  push_policy: local
+  requirement_link: 'off'
+  metrics_store: workspace
+repos: {}

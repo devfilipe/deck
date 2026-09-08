@@ -1,0 +1,89 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>deck — a control plane for coding agents</title>
+<meta name="description" content="deck holds what your team knows about its own workspace, so an agent can act on it and a reviewer can check what happened.">
+<style>
+  :root {
+    --ink: #14171a; --dim: #5b6570; --line: #dfe3e8; --bg: #fbfbfa;
+    --accent: #7c4a2d; --code: #f3f2ef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e8e6e3; --dim: #9aa4ae; --line: #2b3138; --bg: #16191c; --accent: #d79a72; --code: #1e2226; }
+  }
+  * { box-sizing: border-box }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3.5rem 1.25rem 5rem }
+  h1 { font-size: 2.6rem; letter-spacing: -.03em; margin: 0 0 .4rem; text-wrap: balance }
+  h2 { font-size: 1.15rem; letter-spacing: .02em; text-transform: uppercase;
+       color: var(--dim); margin: 3.5rem 0 1rem; font-weight: 600 }
+  .lede { font-size: 1.2rem; color: var(--dim); margin: 0 0 2rem; text-wrap: pretty }
+  a { color: var(--accent) }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .875rem }
+  pre { background: var(--code); padding: 1rem 1.15rem; border-radius: 6px; overflow-x: auto;
+        border: 1px solid var(--line) }
+  .grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)) }
+  .q { border-left: 2px solid var(--line); padding-left: 1rem }
+  .q b { display: block; font-size: .95rem }
+  .q span { color: var(--dim); font-size: .92rem }
+  .q code { color: var(--accent) }
+  table { border-collapse: collapse; width: 100%; font-size: .93rem }
+  td, th { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top }
+  th { color: var(--dim); font-weight: 600 }
+  .cta { display: inline-block; margin-right: 1rem; font-weight: 600 }
+  footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+           color: var(--dim); font-size: .9rem }
+</style>
+
+<div class="wrap">
+  <h1>deck</h1>
+  <p class="lede">
+    A control plane for coding agents working across repositories. It holds what
+    your team knows about its own workspace, so an agent can act on it and a
+    reviewer can check what happened.
+  </p>
+
+  <p>
+    <a class="cta" href="https://github.com/devfilipe/deck">Source</a>
+    <a class="cta" href="https://github.com/devfilipe/deck/blob/main/WALKTHROUGH.md">Start from nothing</a>
+    <a class="cta" href="https://github.com/devfilipe/deck-exercises">Exercises</a>
+  </p>
+
+  <h2>Five questions no agent can answer alone</h2>
+  <div class="grid">
+    <div class="q"><b>Map</b><span>Where is everything, and what does a change here reach? <code>deck impact</code></span></div>
+    <div class="q"><b>Decisions</b><span>What is already decided, and what must be asked? <code>deck toggle</code></span></div>
+    <div class="q"><b>Context</b><span>What should an agent know while working here? <code>deck mount</code></span></div>
+    <div class="q"><b>Proof</b><span>How far did this actually get verified? <code>deck gate</code></span></div>
+    <div class="q"><b>Accounting</b><span>What did it cost? <code>deck cost</code></span></div>
+  </div>
+
+  <h2>It does not do this</h2>
+  <table>
+    <tr><th>Claude Code already ships</th><th>deck</th></tr>
+    <tr><td>Spawning and coordinating agents</td><td>emits a plan; never orchestrates</td></tr>
+    <tr><td>Loading instructions per directory</td><td>places artifacts into those surfaces</td></tr>
+    <tr><td>Asking the operator a question</td><td>supplies the wording; the runtime draws the box</td></tr>
+    <tr><td>Reviewing code and security</td><td>names the reviews that have not run</td></tr>
+    <tr><td>Writing your code</td><td>answers before, records after</td></tr>
+  </table>
+
+  <h2>Install</h2>
+<pre>git clone https://github.com/devfilipe/deck.git ~/tools/deck
+ln -s ~/tools/deck/plugins/deck/bin/deck ~/.local/bin/deck
+deck --help</pre>
+  <p style="color:var(--dim);font-size:.9rem">
+    Python 3.10+ and PyYAML. No build step. Everything works in a terminal, a
+    script or CI, with no agent present.
+  </p>
+
+  <footer>
+    MIT licensed ·
+    <a href="https://github.com/devfilipe/deck/blob/main/FOUNDATIONS.md">What enters deck, and who owns it</a> ·
+    <a href="https://github.com/devfilipe/deck/blob/main/CONTRIBUTING.md">Contributing</a>
+  </footer>
+</div>
+

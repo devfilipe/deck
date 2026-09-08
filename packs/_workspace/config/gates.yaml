@@ -1,0 +1,75 @@
+# deck's own ladder. These are the commands a contributor has to pass, so they
+# are the commands the gate engine runs on this workspace — the tool verifying
+# itself with the same mechanism it offers everyone else.
+gates:
+  - id: commit-shape
+    title: every commit carries a Conventional subject, and the branch its issue
+    from_level: static
+    # Runs on the range ahead of main, so it judges the work in hand and never
+    # re-judges history that is already merged. It checks the half a machine can
+    # settle; whether the message is *good* stays with the reviewer.
+    once: "python3 ${deck.root}/packs/_workspace/bin/commit-shape.py"
+
+  - id: lint
+    title: ruff
+    from_level: static
+    once: "ruff check ${deck.root} && ruff format --check ${deck.root}"
+
+  - id: catalog
+    title: the toggle catalog is answerable
+    from_level: static
+    once: "cd ${deck.root} && ./plugins/deck/bin/deck toggle validate --strict"
+    measures:
+      # `validate` already prints both numbers; reading them costs nothing and
+      # makes the catalog's growth visible. No `better:` on the size: a catalog
+      # that grows because a pack landed is not the same as one that grows
+      # because a rule was written as a decision, and only a person can tell
+      # those apart.
+      - id: toggles
+        title: toggles in the merged catalog
+        pattern: 'OK — (\d+) toggles'
+        unit: toggles
+      - id: warnings
+        title: catalog warnings
+        pattern: '(\d+) warning\(s\)'
+        unit: warnings
+        better: lower
+
+  - id: docs
+    title: every command is named in the documents
+    from_level: static
+    # No `--suite-log` here, and that is the one place the ladder and the
+    # workflow deliberately differ. `--counts` with no log runs the suite to
+    # learn the real total, and locally there is no earlier run to read: this
+    # rung comes before `smoke`. CI has already run the suite by the time it
+    # checks the documents, so it passes the log and the suite runs once.
+    once: "python3 ${deck.root}/packs/_workspace/bin/docs-cover.py --counts"
+
+  - id: smoke
+    title: smoke suite
+    from_level: build
+    once: "${deck.root}/ci/smoke.sh"
+    # Builds synthetic workspaces in temporary directories and prints every
+    # check; large output, and nothing in it belongs in the main context.
+    subagent: true
+    timeout: 900
+    measures:
+      # The suite prints "N checks, 0 failures" when it passes and "N failure(s)
+      # in M checks" when it does not; `(\d+) checks` reads the total either
+      # way, so a run that fails still contributes a sample rather than a hole.
+      - id: checks
+        title: checks in the smoke suite
+        pattern: '(\d+) checks'
+        unit: checks
+        better: higher
+
+  - id: tour
+    title: the tour still runs end to end
+    from_level: build
+    # It was in CI and declared nowhere, which made the pack an incomplete
+    # statement of what verifies this repository — and the pack is the thing
+    # this project asks everyone else to trust. `--fast` drops the typing
+    # delays; what is left is the only check that exercises the whole arc, from
+    # `deck init` to a gate report, in one workspace.
+    once: "${deck.root}/docs/tour.sh --fast"
+    subagent: true

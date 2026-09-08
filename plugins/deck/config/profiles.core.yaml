@@ -1,0 +1,89 @@
+# =============================================================================
+# DECK — CORE PROFILES
+# =============================================================================
+# A profile is a named set of toggle values forming the base layer. Anything set
+# in `.deck/toggles.yaml`, in the environment, or on the task still wins over it.
+#
+# Switching profile is how you change the agent's posture in one phrase ("today
+# is a hotfix day") without editing twenty lines of configuration.
+#
+# Packs add their own profiles, and may extend these by repeating the name.
+#
+#   deck toggle profile <name>                 workspace scope
+#   deck toggle profile <name> --at task    this task only
+# =============================================================================
+
+version: 1
+
+profiles:
+
+  standard:
+    title: Standard
+    summary: >
+      The everyday balance. Asks about what is expensive or irreversible —
+      deployment, target, push — and assumes the rest.
+    values: {}
+
+  guided:
+    title: Guided
+    summary: >
+      For someone new to the codebase, or for a change in an area they do not
+      know yet. Asks more, verifies to the end, and lets no gap pass quietly.
+    values:
+      plan_approval: always
+      gate_level: behavior
+      test_depth: related
+      unit_tests: required
+      strict_gates: true
+      doc_sync: required
+      requirement_link: required
+      deploy_mode: ask
+      push_policy: ask
+      question_budget: 6
+      board_parallelism: 1
+
+  autonomous:
+    title: Autonomous
+    summary: >
+      A batch of familiar tasks with the operator watching from a distance.
+      Takes the defaults and interrupts only for high risk. Needs a target
+      declared in the descriptor, or deployment has nowhere to go.
+    values:
+      plan_approval: threshold
+      deploy_mode: fast
+      push_policy: draft
+      gate_level: deploy
+      test_depth: smoke
+      doc_sync: ask
+      question_budget: 1
+      board_parallelism: 2
+
+  hotfix:
+    title: Hotfix
+    summary: >
+      The short path to the running system, without giving up the trail. Cuts
+      documentation and long regression; keeps plan approval, the requirement
+      link and the security review.
+    values:
+      plan_approval: always
+      gate_level: deploy
+      build_scope: affected
+      deploy_mode: fast
+      test_depth: smoke
+      unit_tests: "off"
+      doc_sync: "off"
+      requirement_link: required
+      push_policy: review
+      question_budget: 2
+
+  offline:
+    title: No target available
+    summary: >
+      Nothing to deploy to. Verifies through the build and records explicitly
+      that the deployment and behaviour gates did not run.
+    values:
+      gate_level: build
+      deploy_mode: none
+      test_depth: none
+      strict_gates: false
+      question_budget: 2

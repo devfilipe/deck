@@ -1,0 +1,47 @@
+# =============================================================================
+# DECK — WORKSPACE DESCRIPTOR FOR DEVELOPING DECK
+# Created by `deck init` when packs/self is loaded.
+# =============================================================================
+# Two repositories, cloned side by side. The edge between them is the point:
+# a change to the engine reaches the example pack, because the example pack is
+# how the engine's central promise gets verified.
+#
+#   ~/clones/deck        the engine
+#   ~/clones/deck-acme   the example pack and its demos
+# =============================================================================
+
+version: 1
+
+packs_root:
+  - packs
+
+requires_files:
+  - plugins/deck/bin/deck
+  - ci/smoke.sh
+
+repos:
+
+  deck:
+    path: .
+    role: the engine — resolution, impact graph, toggles, surfaces
+    remote_id: devfilipe/deck
+    lint: ruff check . && ruff format --check .
+    build_target: deck
+    impacts: [deck-acme]
+
+  deck-acme:
+    path: ../deck-acme
+    role: example pack and demos; the agnosticism test
+    remote_id: devfilipe/deck-acme
+    downstream: true          # nothing to build; it has to keep working
+    impacts: []
+
+# No deployment target: deck ships as a repository, not to a machine.
+targets: []
+
+backlog:
+  # deck's own board is GitHub Issues. The token is resolved at call time by a
+  # command, so it lives in the gh keyring and never in a file deck reads.
+  - type: github
+    repo: devfilipe/deck
+    token_command: gh auth token

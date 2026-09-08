@@ -1,0 +1,184 @@
+# =============================================================================
+# DECK — WORKSPACE DESCRIPTOR
+# Copied to <workspace-root>/.deck/workspace.yaml by `deck init`.
+# =============================================================================
+# This file is PER MACHINE: paths, targets and credentials differ from person to
+# person. It is not versioned inside your product repositories — only the
+# template lives in a pack.
+#
+# It answers three questions that otherwise depend on somebody remembering:
+#   1. where each repository is, and what builds it;
+#   2. who else is affected when one of them changes (`impacts`, `couples`);
+#   3. which machines the agent is allowed to touch (`targets` — an allowlist).
+#
+# NO CREDENTIALS HERE. Use an alias in ~/.ssh/config and reference the alias.
+#
+# An extension pack usually ships a filled-in version of this file. This one is
+# the neutral shape, with every field explained.
+# =============================================================================
+
+version: 1
+
+# Where the pack collections live. One or more directories, each holding packs
+# named after the repositories they belong to — `<packs_root>/<repo>` — plus an
+# optional `_workspace` pack that applies to every repository.
+#
+# A list, because layering is real: a domain collection any team could use, and
+# an organisation's own on top of it. The name is the link; there is no mapping
+# table to keep current.
+packs_root: []
+# packs_root:
+#   - ../ai-packs
+#   - ~/work/shared-packs
+
+# Files that must exist for this workspace to be usable. `deck doctor` checks
+# them and reports the missing ones as problems, not warnings.
+requires_files: []
+# requires_files:
+#   - build/docker-compose.yml
+
+# ------------------------------------------------------------------------ paths
+# Directories this workspace USES but does not CHANGE: a shared tools checkout,
+# a scripts directory, a vendor drop. They may live anywhere — `~` expands and
+# an absolute path is taken as given.
+#
+# The line to hold is what you change versus what you use. Something you edit
+# is a repository and belongs under `repos:` even when it sits outside this
+# tree; something you only invoke belongs here. A path declared here carries no
+# impact edges, declares no gates, and is never mounted into.
+#
+# A gate or a rule refers to one as ${path.<name>}, which is what keeps the
+# pack portable: the pack names `tools`, this file — yours, per machine, not
+# versioned — says where yours is.
+paths: {}
+# paths:
+#   tools:   ~/work/tools
+#   scripts: ../shared-scripts
+
+# ------------------------------------------------------------------ repositories
+# `impacts` is the edge list of the change-propagation graph: who has to be
+# revisited when THIS repository changes. It is what makes the whole chain get
+# remembered, so keep it honest.
+#
+# Per-repository fields the engine understands:
+#   path          required, relative to the workspace root
+#   role          one line, shown by `deck info`
+#   remote_id     substring the git origin must contain; doctor warns otherwise
+#   build_target  the name a build gate passes to the pack's build command
+#   lint          command the static gate runs in this repository
+#   deploy_path   where a fast deployment syncs files to
+#   services      services to restart after deploying this repository
+#   downstream    true when it must keep up but produces no artifact
+#   impacts       repositories reached by a change here, in that direction
+#   couples       repositories that drive each other with this one, in neither
+repos: {}
+# repos:
+#   api-schema:
+#     path: services/api-schema
+#     role: published API contract
+#     remote_id: acme/api-schema
+#     build_target: api-schema
+#     lint: npm run lint
+#     impacts: [api-server, web-client, e2e-suite]
+#
+#   api-server:
+#     path: services/api-server
+#     role: request handling
+#     build_target: api-server
+#     deploy_path: /opt/api-server/
+#     services: [api]
+#     impacts: [e2e-suite]
+#     couples: [ops-scripts]
+#
+#   ops-scripts:
+#     path: tools/ops-scripts
+#     role: the deployment commands the server shells out to
+#     impacts: []
+#
+#   e2e-suite:
+#     path: tests/e2e
+#     role: end-to-end assertions over the running API
+#     downstream: true
+#     impacts: []
+#
+# ------------------------------------------------------- impacts vs. couples
+# `impacts` answers two questions with one edge: what must I revisit, and in
+# what order. Most relationships have both answers — the schema comes first,
+# the server follows.
+#
+# Some do not. `api-server` seeds a configuration that `ops-scripts` reads, and
+# `ops-scripts` ships the command line `api-server` calls at runtime: each side
+# breaks the other, and neither goes first. Writing that as two `impacts` edges
+# is a cycle, and the topological order stops existing; writing one and leaving
+# the other in a comment throws away a constraint no command can then use.
+#
+# `couples` is that relationship, recorded:
+#
+#   symmetric      one side is enough. `couples: [b]` under `a` and
+#                  `couples: [a]` under `b` mean the same thing, and writing
+#                  both is accepted, not a duplicate.
+#   not transitive a couples b and b couples c says nothing about a and c.
+#   no order       `deck order` and the cycle check never read it, so a
+#                  coupling cannot make the graph cyclic.
+#   what it does   `deck impact` reports both sides, marked as carrying no
+#                  order; `deck mount` places the packs for both; and
+#                  `deck scope` names a coupling a scope holds one side of.
+#
+# `deck doctor` checks that every `couples` target exists, names each pair once,
+# and refuses a pair declared as an impact and a coupling at the same time.
+
+# ----------------------------------------------------------------------- scopes
+# A named subset of the registry: "this initiative is these six of forty".
+#
+# A scope carries the two things that follow from drawing that line — the board
+# those repositories work from, and the posture recorded for them (in
+# `.deck/toggles.yaml` under `scopes:`, beside the per-repository overrides).
+#
+# It narrows what a command ACTS ON, never what deck KNOWS. `deck impact` still
+# reports the whole chain and marks what falls outside, because a subset that
+# hides an edge is worse than no subset at all.
+#
+# A boundary leaks two ways, and `deck scope <name>` reports both, apart:
+#
+#   reaches        what the scope's `impacts` reach and the scope does not hold,
+#                  in build order.
+#   coupled with   the other half of a `couples` pair the scope holds one side
+#                  of, in no order — the pair breaks both ways, so an initiative
+#                  owning one side has a boundary that is wrong or a dependency
+#                  nobody agreed to. Couplings of the repositories it HOLDS, not
+#                  of the ones it merely reaches; a coupling does not chain.
+#
+# Neither is an error. Both are the question to settle before the work starts:
+# take the name into `repos:`, or agree with whoever owns it.
+#
+#   deck scopes                       what is declared, and what each one leaks
+#   deck --scope <name> board plan    work inside one
+scopes: {}
+# scopes:
+#   payments:
+#     title: Payments migration
+#     repos: [api-schema, api-server]
+#     backlog:                      # optional; without it the workspace board
+#       - type: tasks               # is read and narrowed to these repositories
+#         file: docs/board-payments.yaml
+
+# ---------------------------------------------------------------------- targets
+# ALLOWLIST. The `target_allowlist` guard denies ssh, scp and http to any host
+# that is not here. Add a machine deliberately, never "just in case", and never
+# a customer's.
+targets: []
+# targets:
+#   - host: 10.0.0.4
+#     role: primary
+#     alias: lab-1          # defined in your ~/.ssh/config
+#     notes: latest build
+
+# ---------------------------------------------------------------------- backlog
+# Sources a board command reads. Do not invent a new board: point at what the
+# team already maintains.
+backlog: []
+# backlog:
+#   - type: roadmap
+#     file: planning/roadmap.md
+#   - type: requirements
+#     file: docs/requirements.yaml

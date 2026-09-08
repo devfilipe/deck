@@ -1,0 +1,8 @@
+{
+  "name": "deck-development",
+  "displayName": "deck — development",
+  "description": "What a contributor needs while working on deck itself: the design line, the conventions, how to add a command, and how a change is verified before it is claimed to work.",
+  "version": "0.1.0",
+  "author": { "name": "Filipe Denaur de Moraes" },
+  "license": "MIT"
+}

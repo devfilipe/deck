@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "deck",
+  "description": "deck — a control plane for coding agents working across repositories.",
+  "owner": { "name": "Filipe Moraes" },
+  "metadata": { "pluginRoot": "./plugins" },
+  "plugins": [
+    {
+      "name": "deck",
+      "source": "./plugins/deck",
+      "displayName": "deck",
+      "description": "Workspace resolution, impact graph, decision toggles and verification gates for agents working across repositories. Domain knowledge arrives from extension packs as data.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "workflow",
+      "keywords": ["control-plane", "monorepo", "multi-repo", "toggles", "impact-graph"]
+    }
+  ]
+}

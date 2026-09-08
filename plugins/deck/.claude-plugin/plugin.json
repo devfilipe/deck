@@ -1,0 +1,33 @@
+{
+  "name": "deck",
+  "displayName": "deck",
+  "description": "A control plane for coding agents working across repositories: workspace resolution, impact graph, decision toggles, and verification gates. Domain specifics arrive from extension packs as data, never as code.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Filipe Denaur de Moraes"
+  },
+  "license": "MIT",
+  "keywords": [
+    "control-plane",
+    "multi-repo",
+    "toggles",
+    "impact-graph",
+    "gates"
+  ],
+  "userConfig": {
+    "workspace_root": {
+      "type": "directory",
+      "title": "Workspace root",
+      "description": "Root of the repository collection deck manages. Used only when DECK_ROOT is unset and no pack marker matches.",
+      "required": false
+    },
+    "packs": {
+      "type": "directory",
+      "title": "Extension pack directory",
+      "description": "Directory holding a deck extension pack (config/toggles.yaml, config/gates.yaml, templates/). Optional; the descriptor can also name packs.",
+      "required": false,
+      "multiple": true
+    }
+  },
+  "workflows": "./workflows/"
+}

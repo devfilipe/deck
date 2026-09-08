@@ -1,0 +1,36 @@
+# Named postures for working on deck itself. A profile is the base layer;
+# anything set in .deck/toggles.yaml, in the environment, or on the task wins.
+#
+# There is only one lever here, and that is deliberate: how far the change has
+# to be verified. Everything that used to be a second lever is now either a gate
+# (so the ladder decides it) or a rule (so it is never off).
+
+version: 1
+
+profiles:
+  engine:
+    title: Engine change
+    summary: >
+      Touching the package or the entry point. deck-acme has to keep working
+      unedited — that is the agnosticism contract — so the ladder goes all the
+      way up.
+    values:
+      gate_level: deploy
+      plan_approval: always
+
+  catalog:
+    title: Catalog change
+    summary: >
+      Adding or editing toggles. Cheap to get wrong in a way nobody notices
+      until an agent asks a badly worded question at the wrong moment, which is
+      why the `catalog` gate is not optional.
+    values:
+      gate_level: build
+
+  docs:
+    title: Documentation
+    summary: >
+      Prose only. `gate_level: static` is what excludes the smoke suite — the
+      ladder decides it, rather than a toggle saying so twice.
+    values:
+      gate_level: static

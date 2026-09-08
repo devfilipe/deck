@@ -1,0 +1,92 @@
+# =============================================================================
+# DECK — YOUR CHOICES
+# Copied to <workspace-root>/.deck/toggles.yaml by `deck init`.
+# =============================================================================
+# The catalog (what each toggle means, which values exist, which question gets
+# asked) lives in the deck core and in your extension packs. This file holds
+# only what you decide.
+#
+# Five things worth knowing before editing:
+#
+#   1. The special value `ask` makes the agent ASK at the right moment instead
+#      of deciding for you. The question and its options come from the catalog.
+#
+#   2. Anything listed under `values:` BEATS THE PROFILE. That is why the block
+#      ships empty: so the profile you pick actually takes effect. Pin something
+#      here only when it must hold regardless of profile.
+#
+#   3. What is not here comes from the profile; what is not in the profile comes
+#      from the catalog default. List only what you want different.
+#
+#   4. `reasons:` sits beside `values:`, on the same toggle ids, and holds why
+#      THIS value was chosen here. It is not the catalog's `rationale`, which
+#      says why the toggle exists at all. `deck toggle set <id> <value> --at
+#      <layer> --why "<reason>"` writes both; `deck toggle explain <id>` prints
+#      them apart. A value written with no `--why` has no reason and is
+#      reported as having none, which is the point: a decision and a value
+#      nobody revisited must not look the same six months later.
+#
+#   5. Precedence, strongest to weakest:
+#        task  >  DECK_<ID> in the environment  >  `repos:` here
+#             >  `scopes:` here  >  `values:` here  >  profile  >  catalog default
+#
+#      A scope sits between the repository and the workspace: narrower than
+#      "everywhere", wider than one checkout. Record one with
+#      `deck toggle set --at <scope> <id> <value> --why "<reason>"`, which
+#      writes:
+#
+#        scopes:
+#          cybersecurity:
+#            values:
+#              gate_level: behavior
+#            reasons:
+#              gate_level: this initiative is the one that ships to customers
+#      Most specific wins: inside a repository listed under `repos:`, that value
+#      goes ahead of the general `values:` block.
+#
+# Useful commands:
+#   deck toggle list                 everything, with the source of each value
+#   deck toggle explain deploy_mode  what it means and why it is what it is
+#   deck toggle set gate_level build --at task --why "docs only, nothing to build"
+#   deck toggle profile hotfix
+# =============================================================================
+
+version: 1
+
+# Base layer. See the core profiles:
+#   standard      the everyday balance
+#   guided        asks more and verifies to the end (someone new to the code)
+#   autonomous    a batch of familiar tasks, watched from a distance
+#   hotfix        the short path, without giving up the trail
+#   offline       no deployment target available
+profile: standard
+
+# ------------------------------------------------------------------- workspace
+# Empty on purpose: `standard` plus the catalog defaults already give the
+# intended posture — asks about deployment, target and push; verifies through
+# deployment.
+#
+# Pin here only what must hold whatever the profile. For example:
+#
+# values:
+#   strict_gates: true          # the session will not end with a pending gate
+#   question_budget: 1          # this machine prefers few interruptions
+#   deploy_mode: fast           # never ask: here it is always a file sync
+# reasons:
+#   deploy_mode: the only target here is a dev pod; a package build buys nothing
+values: {}
+
+# ---------------------------------------------------------------- per repository
+# Overrides both `values:` and the profile, inside the named repository only.
+# The key is the repository name as it appears under `repos:` in workspace.yaml.
+repos: {}
+# repos:
+#   api-schema:
+#     api_compat: ask           # every schema change is a contract decision
+#     gate_level: behavior
+#     reasons:
+#       gate_level: it is the published contract; nothing below behaviour proves it
+#
+# `reasons:` is the one key here that is not a toggle id. A repository block may
+# also be written the way every other block is — `values:` and `reasons:` side
+# by side — and both shapes are read.

@@ -1,0 +1,31 @@
+# =============================================================================
+# DECK DEVELOPING DECK
+# =============================================================================
+# Four toggles used to live here — agnostic_check, smoke, catalog_review and
+# docs_in_sync — each an `off`/`required` pair defaulting to `required`. Nobody
+# contributing to deck would ever set one to `off`, which is the definition of a
+# rule wearing a decision's clothes.
+#
+# `deck pack review` said exactly that about deck's own pack, which is the whole
+# point of running the tool on itself. Where each went:
+#
+#   smoke, catalog_review  -> gates. A machine can check them, so it does, and
+#                             the ladder already excluded them for a docs-only
+#                             change through `gate_level: static`.
+#   agnostic_check         -> rules/design-line.md, which already said it.
+#   docs_in_sync           -> rules/prose.md.
+#
+# What is left is a real decision: how far a change to deck has to be verified.
+# =============================================================================
+
+version: 1
+
+toggles:
+
+  - id: gate_level
+    overrides: true
+    impact:
+      static: ruff check and ruff format --check.
+      build: Adds the smoke suite and `deck toggle validate --strict`.
+      deploy: Adds the deck-acme demos, unedited, as the agnosticism proof.
+      behavior: Everything, including the recorded tour.

@@ -1,0 +1,47 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      # Named one by one rather than `cp docs/*.html`. docs/ also holds the
+      # board and the tour script, and neither belongs on a web page; a glob
+      # would publish whatever lands there next without anyone deciding to.
+      # The recorded tour is not published yet: the take that existed had a
+      # machine's session name in its output.
+      #
+      # `.nojekyll` is why every page here is HTML: it turns Jekyll off, so a
+      # .md file in docs/ would be served as its own source rather than
+      # rendered. A Markdown page would mean turning Jekyll back on, which is
+      # a build step in front of a static file.
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp docs/index.html _site/
+          cp docs/pt-br.html _site/
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

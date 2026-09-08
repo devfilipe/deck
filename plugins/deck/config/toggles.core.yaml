@@ -1,0 +1,684 @@
+# =============================================================================
+# DECK — CORE TOGGLE CATALOG
+# =============================================================================
+# This file DEFINES toggles: what exists, what each value means, and — when the
+# effective value is `ask` — which question the agent puts to the operator, with
+# which options.
+#
+# It holds nobody's choices. Values live in:
+#   1. .deck/state/toggles-<session>.yaml   (task scope, ephemeral)
+#   2. environment variable DECK_<ID_UPPERCASED>
+#   3. `repos:` block of .deck/toggles.yaml (repository scope)
+#   4. `values:` block of the same file     (workspace scope, per machine)
+#   5. the selected profile
+#   6. the `default` field here             (the team's policy)
+# Precedence: 1 beats 2, and so on — the most specific wins.
+#
+# Everything here is domain-neutral. Anything that needs to know what you build
+# with belongs in an extension pack, which merges its own entries into this
+# catalog. A pack extends an entry defined here by repeating its `id` with
+# `overrides: true`.
+#
+# Authoring rules, enforced by `deck toggle validate`:
+#   - `id` in snake_case, unique across core and packs.
+#   - `question.header` at most 12 characters (selector limit).
+#   - at most 4 askable values (selector limit) — use `askable_values` to pick.
+#   - quote `off`, `on`, `yes`, `no`: YAML turns them into booleans.
+#   - a toggle in the `security` group may not default to `ask`.
+# =============================================================================
+
+version: 1
+
+groups:
+  quality:  { title: "Quality and verification", order: 1 }
+  build:    { title: "Build and deployment",     order: 2 }
+  security: { title: "Security",                 order: 3 }
+  delivery: { title: "Delivery",                 order: 4 }
+  docs:     { title: "Documentation and trace",  order: 5 }
+  agent:    { title: "Agent behaviour",          order: 6 }
+
+# Stages at which the resolver is consulted. `deck toggle ask-plan --stage X`
+# returns only that stage's pending questions, so nobody is interrogated about
+# deployment before a plan exists.
+stages: [plan, implement, verify, deliver]
+
+toggles:
+
+  # ----------------------------------------------------------------- quality
+  - id: gate_level
+    group: quality
+    title: How far to verify
+    summary: The highest rung of the gate ladder this delivery has to reach.
+    type: enum
+    values: [static, build, deploy, behavior]
+    default: deploy
+    stage: [plan, verify]
+    scope: [workspace, task]
+    risk: high
+    rationale: >
+      Not every change deserves a full run. A documentation fix stops at
+      `static`; a change to a published interface is only done at `behavior`.
+      The report always states the rung reached, so lowering this is a visible
+      decision rather than a quiet one. Packs may insert intermediate rungs.
+    impact:
+      static: Lint and static checks only. For changes that provably alter no behaviour.
+      build: Adds building the affected artifacts.
+      deploy: Adds installing them where they run.
+      behavior: Adds assertions against the running system.
+    question:
+      header: Verify
+      text: How far does this delivery need to be verified?
+      options:
+        - value: behavior
+          label: Through real behaviour
+          description: The whole ladder, ending in assertions against the running system.
+        - value: deploy
+          label: Through deployment
+          description: Builds and installs, and confirms it comes up. No functional assertions.
+        - value: build
+          label: Through the build
+          description: Compiles and packages without touching a running system.
+        - value: static
+          label: Lint only
+          description: For documentation and changes that provably alter no behaviour.
+
+  - id: test_depth
+    group: quality
+    title: Test depth
+    summary: How much of the existing test surface runs at the behaviour gate.
+    type: enum
+    values: [none, smoke, related, full]
+    default: smoke
+    stage: [verify]
+    scope: [workspace, task]
+    depends_on: { gate_level: behavior }
+    risk: medium
+    impact:
+      none: Only the assertions specific to this change.
+      smoke: Adds the smoke suite — confirms the system came up whole.
+      related: Adds the suites covering the modules this change touched.
+      full: Adds the complete regression suite. Expensive; save it for a release.
+    question:
+      header: Tests
+      text: How much regression should run after the change?
+      options:
+        - value: smoke
+          label: Smoke suite
+          description: Confirms the system came up whole after the change. Fast.
+        - value: related
+          label: Related suites
+          description: Adds the suites covering the modules this change touched.
+        - value: full
+          label: Full regression
+          description: The whole suite. Expensive in time; use it before a release.
+        - value: none
+          label: Only what changed
+          description: Just the assertions specific to this change.
+
+  - id: unit_tests
+    group: quality
+    title: Unit tests
+    summary: Whether a logic change has to arrive with an automated test.
+    type: enum
+    values: ["off", opportunistic, required]
+    default: opportunistic
+    stage: [plan, verify]
+    scope: [workspace, repo, task]
+    risk: medium
+    rationale: >
+      Plenty of real codebases have no unit suite and verify through the running
+      system instead. That is a choice, not a law: `required` turns on a test
+      gate before the build, and `opportunistic` adds tests only where there is
+      already somewhere to put them.
+    impact:
+      "off": No test is written or required.
+      opportunistic: A test is written where the repository already has a suite; elsewhere the gap is recorded.
+      required: Every logic change needs a test. With no suite present, `test_scaffold` decides whether one is created.
+    question:
+      header: Tests
+      text: Should this delivery come with a unit test?
+      options:
+        - value: opportunistic
+          label: Where a suite exists
+          description: Writes tests in repositories that already have one; elsewhere records the gap.
+        - value: required
+          label: Yes, required
+          description: No logic change lands without a test. Turns on a test gate before the build.
+        - value: "off"
+          label: No
+          description: Verification rests on the deployment and behaviour gates.
+
+  - id: test_scaffold
+    group: quality
+    title: Create test scaffolding
+    summary: Allows creating test infrastructure in a repository that has none.
+    type: bool
+    default: false
+    stage: [plan]
+    scope: [workspace, repo, task]
+    depends_on: { unit_tests: required }
+    risk: medium
+    rationale: >
+      Introducing a suite where none exists is a structural change to the
+      repository. It deserves its own reviewed change, not a side effect of a
+      feature.
+    impact:
+      "true": Creates the test directory and configuration in a separate commit, ahead of the feature.
+      "false": A repository without a suite records the gap in the report instead of growing new structure.
+    question:
+      header: Scaffold
+      text: Create test scaffolding in repositories that have none?
+      options:
+        - value: "false"
+          label: No, record the gap
+          description: The gap shows up in the delivery report so it can become its own task.
+        - value: "true"
+          label: Yes, separate commit
+          description: Test configuration lands ahead of the feature, as an independent change.
+
+  - id: coverage_min
+    group: quality
+    title: Minimum coverage
+    summary: Coverage percentage required at the test gate.
+    type: int
+    min: 0
+    max: 100
+    default: 0
+    stage: [verify]
+    scope: [workspace, repo]
+    depends_on: { unit_tests: required }
+    askable: false
+    risk: low
+    impact:
+      "0": Coverage is measured and reported, but does not fail the gate.
+      ">0": The gate fails below the percentage, counting only the files touched.
+
+  - id: metrics_store
+    group: quality
+    title: Where measurements accumulate
+    summary: Where the series a gate measures is kept, and therefore who can see the trend.
+    type: enum
+    values: ["off", workspace, shared]
+    default: workspace
+    stage: [verify]
+    scope: [workspace]
+    askable: false
+    risk: low
+    rationale: >
+      A gate passes or fails against a threshold, so decay inside the threshold
+      is invisible: coverage sliding from 86 to 81 under an 80 floor passes
+      every run. A gate that declares `measures:` records the number instead of
+      only judging it, and this says where that history lives. It is posture,
+      not a per-task question — a series split across two locations is two
+      partial histories and no trend at all.
+    impact:
+      "off": Numbers are measured and printed with the run, and nothing accumulates. `deck metrics` says so rather than showing an empty page.
+      workspace: Appended under .deck/metrics/, beside the gate evidence they came from. Per machine, unless the team versions .deck/.
+      shared: Appended under the descriptor's `metrics_dir:`, so one history covers every machine. Without that key deck refuses rather than quietly writing per machine.
+
+  - id: strict_gates
+    group: quality
+    title: Blocking gates
+    summary: Refuses to end the session while a change has no gate record.
+    type: bool
+    default: false
+    stage: [verify]
+    scope: [workspace]
+    askable: false
+    risk: medium
+    impact:
+      "true": The stop hook blocks and requires running or explicitly waiving the gate.
+      "false": The hook only warns. The gap appears in the report as "not run".
+
+  - id: lint_autofix
+    group: quality
+    title: Format on edit
+    summary: Runs the repository's formatter right after each edit.
+    type: bool
+    default: true
+    stage: [implement]
+    scope: [workspace, repo]
+    askable: false
+    risk: low
+    impact:
+      "true": A post-edit hook formats the touched file using the command the pack declares.
+      "false": Formatting is left to the static gate, which fails instead of fixing.
+
+  # ------------------------------------------------------------------- build
+  - id: build_scope
+    group: build
+    title: Build scope
+    summary: Build only what the change affects, or everything.
+    type: enum
+    values: [affected, all]
+    default: affected
+    stage: [verify]
+    scope: [workspace, task]
+    risk: low
+    impact:
+      affected: Builds only the targets the impact graph names. Minutes instead of hours.
+      all: Builds everything. Needed when the change touches packaging or the top-level artifact.
+    question:
+      header: Build
+      text: Build only what changed, or everything?
+      options:
+        - value: affected
+          label: Only affected targets
+          description: The impact graph decides which. Much faster.
+        - value: all
+          label: Everything
+          description: Required when the change touches packaging or the top-level artifact.
+
+  - id: deploy_mode
+    group: build
+    title: How it is deployed
+    summary: How far the artifact travels to reach the running system.
+    type: enum
+    values: [none, fast, packaged, full]
+    default: ask
+    stage: [verify]
+    scope: [workspace, task]
+    depends_on: { gate_level: [deploy, behavior] }
+    risk: high
+    rationale: >
+      The fast path is what people use all day, and it is also the classic
+      source of "it only breaks on the test machine". Keeping this at `ask`
+      makes the choice deliberate, and the report records which one ran. Packs
+      relabel these rungs to whatever they actually mean locally.
+    impact:
+      none: Does not deploy. Verification stops at the build.
+      fast: Syncs changed files in place and restarts. Seconds, and diverges from what the real artifact ships.
+      packaged: Installs the built package. Faithful to packaging, without a full reinstall.
+      full: The complete artifact. Faithful end to end and the slowest.
+    question:
+      header: Deploy
+      text: How should this change reach the running system?
+      options:
+        - value: fast
+          label: Sync files in place
+          description: Seconds. Flagged in the report because it diverges from what the real artifact ships.
+        - value: packaged
+          label: Install the package
+          description: Goes through real packaging, without a full reinstall.
+        - value: full
+          label: Complete artifact
+          description: Faithful end to end, including packaging. The slowest option.
+        - value: none
+          label: Do not deploy
+          description: Stops at the build; someone takes it further later.
+
+  - id: target
+    group: build
+    title: Deployment target
+    summary: Which host from the allowlist receives the deployment.
+    type: enum
+    values_from: workspace.targets
+    default: ask
+    stage: [verify]
+    scope: [workspace, task]
+    depends_on: { gate_level: [deploy, behavior] }
+    risk: high
+    impact:
+      "*": Only hosts declared under `targets:` in the descriptor are accepted. The allowlist guard denies anything else.
+    question:
+      header: Target
+      text: Which machine should receive this?
+      options_from: workspace.targets
+      option_template:
+        label: "{host}"
+        description: "{role} · ssh alias {alias}"
+
+  - id: restart_policy
+    group: build
+    title: Restart after deploying
+    summary: What gets restarted once the artifact is in place.
+    type: enum
+    values: [none, service, host]
+    default: service
+    stage: [verify]
+    scope: [workspace, task]
+    risk: medium
+    impact:
+      none: Nothing is restarted. Only sensible when the change is read on demand.
+      service: Restarts the services the descriptor associates with the touched repositories.
+      host: Restarts the whole machine. Needed to verify start-up ordering and boot-time behaviour.
+    question:
+      header: Restart
+      text: What should be restarted after deploying?
+      options:
+        - value: service
+          label: Affected services only
+          description: Fast, and enough for most changes.
+        - value: host
+          label: Restart the machine
+          description: Needed to verify start-up ordering and anything that only happens at boot.
+        - value: none
+          label: Nothing
+          description: The change is read on demand and needs no restart.
+
+  # ---------------------------------------------------------------- security
+  - id: target_allowlist
+    group: security
+    title: Target allowlist
+    summary: Blocks access to any host not declared in the descriptor.
+    type: enum
+    values: [enforce, warn]
+    default: enforce
+    stage: [implement, verify]
+    scope: [workspace]
+    askable: false
+    risk: high
+    rationale: >
+      An agent with shell access will reach whatever host a command names. The
+      allowlist turns "only these machines" from an instruction into a rule.
+      There is deliberately no `off`: a host that needs reaching gets declared
+      in the descriptor, under review.
+    impact:
+      enforce: A pre-tool hook denies ssh, scp and http to any host outside the list, with a readable reason.
+      warn: Records and continues. For debugging the hook itself, never as a resting state.
+
+  - id: secret_scan
+    group: security
+    title: Secret scanning
+    summary: Inspects content before it is written to a file.
+    type: enum
+    values: [block, warn]
+    default: block
+    stage: [implement]
+    scope: [workspace]
+    askable: false
+    risk: high
+    impact:
+      block: A pre-tool hook refuses to write private keys, credentials or certificate material.
+      warn: Warns only.
+
+  - id: security_review
+    group: security
+    title: Security review
+    summary: Runs a focused review when the change touches a sensitive path.
+    type: enum
+    values: [auto, "off"]
+    default: auto
+    stage: [verify]
+    scope: [workspace, task]
+    risk: high
+    rationale: >
+      Which paths count as sensitive is domain knowledge, so packs declare them
+      through `applies_to`. Whether the review runs is a policy, so it lives
+      here.
+    impact:
+      auto: The review runs on its own once a sensitive path has been touched.
+      "off": It does not run. The waiver is recorded in the report.
+    question:
+      header: Sec review
+      text: This change touched a sensitive path. Run the security review?
+      options:
+        - value: auto
+          label: Yes, run it now
+          description: A review focused on the sensitive files that changed, before delivery.
+        - value: "off"
+          label: Skip this time
+          description: The waiver is recorded in the delivery report.
+
+  # ---------------------------------------------------------------- delivery
+  - id: plan_approval
+    group: delivery
+    title: Plan approval
+    summary: Whether execution pauses for a human to approve the plan.
+    type: enum
+    values: [always, threshold, auto]
+    default: always
+    stage: [plan]
+    scope: [workspace, task]
+    risk: high
+    impact:
+      always: Always pauses and shows the plan before touching code.
+      threshold: Pauses when the plan spans more than two repositories or touches a sensitive path.
+      auto: Never pauses. For mechanical, well-bounded work only.
+    question:
+      header: Approval
+      text: Pause for you to approve the plan before implementing?
+      options:
+        - value: always
+          label: Always pause
+          description: The plan appears before any code is edited.
+        - value: threshold
+          label: Only when large
+          description: Pauses when it spans more than two repositories or a sensitive area.
+        - value: auto
+          label: Go straight through
+          description: For mechanical, well-bounded work.
+
+  - id: commit_granularity
+    group: delivery
+    title: Commit granularity
+    summary: One commit per repository, or one commit overall.
+    type: enum
+    values: [per_repo, single]
+    default: per_repo
+    stage: [deliver]
+    scope: [workspace]
+    askable: false
+    risk: low
+    impact:
+      per_repo: One conventional commit per repository. Required by most multi-repo review systems.
+      single: Only makes sense when the whole change fits in one repository.
+
+  - id: push_policy
+    group: delivery
+    title: Where the commit stops
+    summary: What happens to the commits at the end of the delivery.
+    type: enum
+    values: [local, draft, review]
+    default: ask
+    stage: [deliver]
+    scope: [workspace, task]
+    risk: high
+    impact:
+      local: Commits stay on the machine. Nothing is published.
+      draft: Pushed as a draft or work in progress. Visible, without summoning a reviewer.
+      review: Pushed and ready for review.
+    question:
+      header: Push
+      text: What should happen to the commits?
+      options:
+        - value: review
+          label: Send for review
+          description: Pushed and ready for a reviewer.
+        - value: draft
+          label: Send as draft
+          description: Visible to the team without summoning a reviewer yet.
+        - value: local
+          label: Keep local
+          description: Nothing leaves the machine; you decide later.
+
+  - id: requirement_link
+    group: delivery
+    title: Requirement link
+    summary: Requires a reference to a tracked requirement or backlog item.
+    type: enum
+    values: ["off", required]
+    default: ask
+    stage: [plan, deliver]
+    scope: [workspace, task]
+    risk: medium
+    impact:
+      "off": No link.
+      required: The plan and the commit message must cite the item.
+    question:
+      header: Requirement
+      text: Does this delivery answer a tracked requirement?
+      options:
+        - value: required
+          label: Yes, link it
+          description: The item goes into the plan and the commit message.
+        - value: "off"
+          label: No, standalone
+          description: No link to the backlog or requirement matrix.
+
+  - id: changelog
+    group: delivery
+    title: Changelog
+    summary: Whether the delivery updates a changelog.
+    type: enum
+    values: ["off", bump]
+    default: "off"
+    stage: [deliver]
+    scope: [workspace, repo]
+    askable: false
+    risk: low
+    impact:
+      "off": The changelog is generated at version bump time, not per change.
+      bump: Runs the pack's version-bump command, updating version and changelog.
+
+  - id: tracker_writes
+    group: delivery
+    title: Writing to the tracker
+    summary: Whether deck may change state other people can see.
+    type: enum
+    values: ["off", ask, allow]
+    default: ask
+    stage: [plan, deliver]
+    scope: [workspace]
+    askable: false
+    risk: high
+    rationale: >
+      Claiming a task or opening an issue is visible to everyone and arrives
+      under someone's name. That is worth a deliberate setting rather than a
+      default, and worth being able to turn off entirely for a machine that
+      should only ever read.
+    impact:
+      "off": deck reads trackers and never writes to them.
+      ask: A write is refused unless the command carries --yes.
+      allow: Writes go through. For a machine whose account is meant to act.
+
+  # ------------------------------------------------------------------- docs
+  - id: doc_sync
+    group: docs
+    title: Sync documentation
+    summary: Updates the documents describing the behaviour that changed.
+    type: enum
+    values: ["off", required]
+    default: ask
+    stage: [deliver]
+    scope: [workspace, task]
+    risk: medium
+    rationale: >
+      Reference documents are what the next session — anyone's — starts from.
+      A stale document costs more than a missing one.
+    impact:
+      "off": Nothing is updated.
+      required: Updates the documents the impact graph marks as affected, in the same change.
+    question:
+      header: Docs
+      text: Update the documentation this change affects?
+      options:
+        - value: required
+          label: Yes, same change
+          description: Affected reference documents land together with the code.
+        - value: "off"
+          label: Not this time
+          description: The drift is recorded in the delivery report.
+
+  - id: ai_assist
+    group: agent
+    title: Ask Claude for a proposal
+    summary: Whether deck may call Claude headlessly to draft what a parser cannot derive.
+    type: enum
+    values: ["off", ask, allow]
+    default: ask
+    stage: [plan]
+    scope: [workspace]
+    askable: false
+    risk: medium
+    rationale: >
+      Two of deck's inputs are judgement about a codebase rather than facts a
+      parser can extract: the propagation edges, and the wording of a toggle.
+      Asking Claude for a draft is useful and costs money, so it is a setting
+      rather than a default. Every such run is read-only and writes a proposal
+      for a person to read — never the descriptor itself.
+    impact:
+      "off": deck never calls Claude. `deck propose` refuses.
+      ask: A proposal run is refused unless the command carries --yes.
+      allow: Proposal runs go ahead, still read-only and still capped.
+
+  # ------------------------------------------------------------------ agent
+  - id: profile
+    group: agent
+    title: Profile
+    summary: A named set of values applied as the base layer.
+    type: enum
+    values_from: profiles
+    default: standard
+    stage: [plan]
+    scope: [workspace, task]
+    askable: false
+    risk: low
+    impact:
+      "*": Sets the base layer individual toggles are applied on top of.
+
+  - id: question_budget
+    group: agent
+    title: Question budget
+    summary: Most questions to ask per task before falling back to defaults.
+    type: int
+    min: 0
+    max: 8
+    default: 3
+    stage: [plan]
+    scope: [workspace, task]
+    askable: false
+    risk: low
+    rationale: >
+      Without a ceiling, a catalog of thirty toggles becomes an interrogation.
+      Once the budget is spent the rest take their defaults, and the report says
+      what was assumed without asking.
+    impact:
+      "0": Never asks. Every `ask` falls back to its default and is recorded as assumed.
+      ">0": Asks at most this many times per task, highest risk first.
+
+  - id: subagent_heavy_tasks
+    group: agent
+    title: Subagent for heavy work
+    summary: Builds, deployments and cross-repository sweeps run in a subagent.
+    type: bool
+    default: true
+    stage: [verify]
+    scope: [workspace]
+    askable: false
+    risk: low
+    impact:
+      "true": Long build logs and suite output stay out of the main context; only the conclusion returns.
+      "false": Everything in the main context. For debugging the flow itself.
+
+  - id: board_parallelism
+    group: agent
+    title: Cards in parallel
+    summary: How many backlog cards run at the same time.
+    type: int
+    min: 1
+    max: 4
+    default: 2
+    stage: [plan]
+    scope: [workspace, task]
+    risk: medium
+    rationale: >
+      A deployment target is an exclusive resource. Two cards needing the same
+      one never run together regardless of this value — the executor serialises
+      per target.
+    impact:
+      "1": One card at a time. Predictable and slow.
+      ">1": Independent cards run together; those competing for a target stay serialised.
+    question:
+      header: Parallel
+      text: How many cards should run at once?
+      options:
+        - value: "1"
+          label: One at a time
+          description: Predictable and easy to follow.
+        - value: "2"
+          label: Two in parallel
+          description: Saves time without making the output hard to follow.
+        - value: "4"
+          label: Four in parallel
+          description: For a batch of independent cards that do not compete for a target.

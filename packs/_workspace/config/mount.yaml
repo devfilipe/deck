@@ -1,0 +1,8 @@
+# The development pack places its rules into deck's own tree.
+rules:
+  - file: rules/design-line.md
+  - file: rules/prose.md
+  - { file: rules/self-hosting.md }
+  - file: rules/how-we-commit.md
+  - file: rules/how-we-open-issues.md
+  - file: rules/how-we-deliver.md

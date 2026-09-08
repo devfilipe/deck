@@ -1,0 +1,42 @@
+name: Feature request
+description: Something deck cannot do that a workspace needs
+labels: [feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read [FOUNDATIONS.md](../blob/main/FOUNDATIONS.md) first — it says
+        which concerns enter deck and which are a pack's, and the answer is a
+        pack more often than it looks.
+  - type: textarea
+    id: trying
+    attributes:
+      label: What you were trying to do
+      description: The task, not the feature. What made you reach for deck at that moment.
+    validations: {required: true}
+  - type: textarea
+    id: instead
+    attributes:
+      label: What deck made you do instead
+      description: The workaround, however ugly. It is usually the most useful part of the report.
+    validations: {required: true}
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Which kind of thing is it
+      description: "See FOUNDATIONS.md §1. If it is none of these, say so below."
+      options:
+        - a fact about a workspace (the descriptor)
+        - an invariant (a rule in a pack)
+        - a decision with more than one defensible answer (a toggle)
+        - something a machine can check (a gate)
+        - none of these
+    validations: {required: true}
+  - type: textarea
+    id: pack
+    attributes:
+      label: Why a pack cannot already do it
+      description: >
+        deck ships no domain knowledge on purpose. If a pack could carry this
+        with the mechanisms that exist, that is the cheaper answer — and if it
+        cannot, saying why is the case for changing the engine.

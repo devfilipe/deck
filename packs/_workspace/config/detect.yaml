@@ -1,0 +1,15 @@
+# deck developing deck. The pack that supports work on this repository.
+#
+# Pointing the tool at itself is not a stunt: it is the cheapest way to notice
+# that a rough edge exists. Anything awkward here will be worse for a pack
+# author who cannot patch the engine.
+markers:
+  - plugins/deck/config/toggles.core.yaml
+  - ci/smoke.sh
+
+prerequisites:
+  - git
+  - { name: python3, required: true }
+  - { name: ruff, required: true }
+  - { name: claude, required: false }
+  - { name: tmux, required: false }
