@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.ruff_cache/
+
+# deck writes here. Per machine, never versioned — see seed/ for the shape.
+.deck/

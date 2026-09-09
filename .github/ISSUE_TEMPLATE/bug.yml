@@ -1,0 +1,39 @@
+name: Bug report
+description: Something deck does that it should not, or does not do that it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The two things that help most: the exact command, and `deck doctor`.
+  - type: textarea
+    id: what
+    attributes:
+      label: What you ran, and what happened
+      description: The command verbatim, and its output. Trim it, but do not paraphrase it.
+      render: shell
+    validations: {required: true}
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: One or two sentences. If deck said something misleading rather than wrong, say which sentence.
+    validations: {required: true}
+  - type: textarea
+    id: doctor
+    attributes:
+      label: deck doctor
+      description: Its full output. It resolves the root, the packs and the graph, which is where most of these turn out to live.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Which deck
+      description: "`git -C <your clone> rev-parse --short HEAD`, or the release tag."
+    validations: {required: true}
+  - type: dropdown
+    id: shape
+    attributes:
+      label: Workspace shape
+      options: [several repositories, one repository, a monorepo with packages, not sure]
+    validations: {required: true}

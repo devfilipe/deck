@@ -1,0 +1,18 @@
+# Pinned deliberately, both the version and the rules.
+#
+# CI installed whatever `pip install ruff` gave it that morning, and the first
+# public push went red on eighteen findings in a tree that had been green for
+# days — an upstream release, not a change here. A linter whose rule set is a
+# function of the calendar makes every build a coin toss.
+#
+# `select` names ruff's documented defaults explicitly, so adopting a new rule
+# becomes a commit rather than a surprise. The CI pins the version to match.
+
+line-length = 120
+
+[lint]
+select = ["E4", "E7", "E9", "F"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

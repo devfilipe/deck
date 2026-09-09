@@ -1,0 +1,34 @@
+{
+  "description": "Hold what is mounted while a session is alive, and take it back when the last session holding it ends, so nothing is left behind in a product repository and nothing is taken from a session still working.",
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/deck",
+            "args": [
+              "unmount",
+              "--session"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/deck",
+            "args": [
+              "hold"
+            ],
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

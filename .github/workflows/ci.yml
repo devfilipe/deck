@@ -1,0 +1,116 @@
+name: ci
+
+# Every step below that is a gate carries a `# gate: <id>` marker naming the gate
+# it runs, declared in `_workspaces/all/default/config/gates.yaml` of the pack
+# collection. The suite checks the two lists against each other, so a gate added
+# to the pack and not to this file fails the suite rather than quietly never
+# running on a push. That check is what pays for the duplication.
+#
+# The collection is a second repository, and this workflow clones it. That is a
+# cost taken deliberately: `packs/` is not versioned in a product repository, and
+# the alternative was a check that skipped when the file was absent — which would
+# pass for want of a file and defend nothing, the failure mode CONTRIBUTING names
+# by hand.
+#
+# Why this file keeps a list at all, instead of a single `deck gate run`:
+#
+#   CI is the outside check on the engine, and it stops being one the moment it
+#   runs through it. `deck gate run` decides which gates apply, and a change
+#   that breaks that decision reports a ladder it did not climb: with no pack
+#   resolved it prints `0 gate(s) passed` and exits 0. A green tick has to mean
+#   the commands ran, not that the engine believed they did.
+#
+#   Two smaller costs, both real. The ladder puts `docs` before `smoke`, and
+#   `docs --counts` runs the suite to learn the real total, so one `deck gate
+#   run` runs the suite twice; here the suite runs once and the count check
+#   reads its log. And a job with one step reports one name — `deck gate run` —
+#   so which gate failed is only in the log, while a step per gate puts the
+#   answer in the GitHub UI.
+#
+# The decision and its cost are written up in CONTRIBUTING.md, under
+# "Before you open a pull request".
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # Both, and they are not the same question. DECK_PACKS_ROOT is where deck
+      # resolves packs from; DECK_SELF_PACKS is where the suite's ladder check
+      # looks for deck's OWN collection, because the suite sets the first one
+      # itself to a synthetic collection and cannot read it back.
+      DECK_PACKS_ROOT: ${{ github.workspace }}/deck-ai-packs/packs
+      DECK_SELF_PACKS: ${{ github.workspace }}/deck-ai-packs/packs
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # `commit-shape` compares against origin/main; the default shallow
+          # clone has no such ref, and the gate would report nothing to check.
+          fetch-depth: 0
+
+      # Inside the workspace, because `actions/checkout` refuses a path outside
+      # it. The sibling layout the descriptor uses is not reproducible here, so
+      # the collection is named by DECK_PACKS_ROOT below instead.
+      - name: The pack collection this repository is verified against
+        uses: actions/checkout@v4
+        with:
+          repository: devfilipe/deck-ai-packs
+          path: deck-ai-packs
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Pinned. An unpinned linter makes the build a function of the
+          # calendar: the first public push went red on eighteen findings from
+          # an upstream release, in a tree nobody had touched.
+          pip install pyyaml "ruff==0.15.6"
+          sudo apt-get update && sudo apt-get install -y tmux
+
+      # gate: commit-shape
+      - name: Commits carry a Conventional subject
+        run: python3 ci/commit-shape.py
+
+      # gate: lint
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+
+      # gate: catalog
+      - name: Catalog is valid
+        run: ./plugins/deck/bin/deck toggle validate --strict
+
+      # gate: docs
+      # Split from the count check below because this half takes a fifth of a
+      # second and the other half needs the suite to have run. A document
+      # naming a command that is gone should not wait behind the suite to say
+      # so, and the two halves fail under different step names.
+      - name: Documents name every command
+        run: python3 ci/docs-cover.py
+
+      # gate: smoke
+      # `shell: bash` for the pipefail the default `bash -e` does not set: with
+      # a bare pipe into tee, a failing suite would report the exit status of
+      # tee, which is always 0.
+      - name: Smoke suite
+        shell: bash
+        run: ./ci/smoke.sh | tee "$RUNNER_TEMP/smoke.log"
+
+      # gate: docs
+      # Reads the total off the run above rather than running the suite a
+      # second time to learn it.
+      - name: Documents state the suite's real check total
+        run: python3 ci/docs-cover.py --counts --suite-log "$RUNNER_TEMP/smoke.log"
+
+      # gate: tour
+      - name: The tour still runs
+        run: ./docs/tour.sh --fast

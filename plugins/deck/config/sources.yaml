@@ -1,0 +1,47 @@
+# Known sources of Claude Code artifacts.
+#
+# This registry is deliberately short. Everything in it is a source whose
+# existence can be checked, not a list of "popular repositories" assembled from
+# memory — a curated list nobody verified is worse than no list, because it
+# borrows credibility it has not earned.
+#
+# `deck pack add` accepts any `owner/repo` or git URL, and reports the star
+# count it reads from the API at the time you add it. That number is data, not
+# a claim this file makes.
+#
+# Add your organisation's own entries here, or in a pack's config/sources.yaml.
+
+version: 1
+
+sources:
+  - name: claude-plugins-official
+    repo: anthropics/claude-plugins-official
+    what: Anthropic's curated plugin marketplace
+    note: >
+      Install these as plugins rather than vendoring them:
+      `claude plugin marketplace add anthropics/claude-plugins-official`.
+
+  - name: superpowers
+    repo: obra/superpowers
+    what: A development methodology as composable skills — TDD, systematic debugging, planning, review
+    note: >
+      Installable from the official marketplace as a plugin
+      (`/plugin install superpowers@claude-plugins-official`), which is how to
+      take it: it is a methodology, and a methodology you have vendored is one
+      that stops receiving its author's corrections. Vendor only the individual
+      skill you intend to change. Its `writing-skills` skill is worth reading
+      before authoring your own pack.
+
+  - name: anthropic-skills
+    repo: anthropics/skills
+    what: Anthropic's own skill library
+    note: >
+      Read it for shape before writing a pack's `skills/`. Take a skill only
+      when you will adapt it; otherwise reach for it where it lives.
+
+  - name: claude-plugins-community
+    repo: anthropics/claude-plugins-community
+    what: The public community marketplace, after review
+    note: >
+      Also a marketplace. Vendor from it only when you want to modify what you
+      take; otherwise install it and let it update itself.

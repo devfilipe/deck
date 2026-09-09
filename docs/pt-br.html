@@ -1,0 +1,2788 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>deck — documentação em português</title>
+<meta name="description" content="O deck é um plano de controle para agentes de codificação que trabalham em vários repositórios: o mapa, as decisões, o contexto, a prova e quanto custou. Documentação completa em português.">
+<style>
+  :root {
+    color-scheme: light dark;
+    --ink: #14171a;
+    --dim: #5b6570;
+    --faint: #8a939d;
+    --line: #dfe3e8;
+    --bg: #fbfbfa;
+    --panel: #f4f3f0;
+    --accent: #7c4a2d;
+    --code: #f3f2ef;
+    --ok: #2f6b3f;
+    --warn: #8a5a12;
+    --stop: #8c2f2f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8e6e3;
+      --dim: #9aa4ae;
+      --faint: #78828c;
+      --line: #2b3138;
+      --bg: #16191c;
+      --panel: #1c2024;
+      --accent: #d79a72;
+      --code: #1e2226;
+      --ok: #8ec79c;
+      --warn: #d9ad6a;
+      --stop: #e08a8a;
+    }
+  }
+
+  * { box-sizing: border-box }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.68 ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .shell { max-width: 78rem; margin: 0 auto; padding: 0 1.1rem }
+
+  /* ---------------------------------------------------------------- layout */
+  .layout { display: block }
+  @media (min-width: 62rem) {
+    .layout { display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); gap: 3rem; align-items: start }
+    nav.toc { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; padding: 2.5rem 0 3rem }
+    nav.toc > details { display: contents }
+    nav.toc summary { display: none }
+  }
+
+  /* -------------------------------------------------------------- typography */
+  h1 { font-size: 2.7rem; letter-spacing: -.03em; margin: 0 0 .3rem; text-wrap: balance }
+  h2 {
+    font-size: 1.5rem; letter-spacing: -.015em; margin: 4rem 0 .9rem;
+    padding-top: 1.6rem; border-top: 1px solid var(--line); text-wrap: balance;
+  }
+  h3 { font-size: 1.12rem; margin: 2.4rem 0 .6rem; letter-spacing: -.01em }
+  h4 { font-size: .98rem; margin: 1.8rem 0 .5rem; color: var(--dim); font-weight: 700 }
+  h2 .num { color: var(--faint); font-weight: 400; margin-right: .5rem }
+  p { margin: 0 0 1rem; text-wrap: pretty }
+  .lede { font-size: 1.22rem; color: var(--dim); margin: 0 0 1.6rem }
+  .kicker { text-transform: uppercase; letter-spacing: .09em; font-size: .74rem; color: var(--faint); font-weight: 700 }
+  a { color: var(--accent) }
+  a.anchor { color: var(--faint); text-decoration: none; font-weight: 400; margin-left: .4rem; opacity: 0 }
+  h2:hover a.anchor, h3:hover a.anchor { opacity: 1 }
+  strong { font-weight: 650 }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.3rem }
+  li { margin-bottom: .4rem }
+
+  code, pre, kbd { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace }
+  code { font-size: .875em; background: var(--code); padding: .1em .34em; border-radius: 3px }
+  pre {
+    background: var(--code); color: var(--ink); padding: .95rem 1.1rem; border-radius: 6px;
+    border: 1px solid var(--line); overflow-x: auto; font-size: .83rem; line-height: 1.55;
+    margin: 0 0 1.1rem;
+  }
+  pre code { background: none; padding: 0; font-size: inherit }
+  pre .c { color: var(--faint) }
+  pre .ok { color: var(--ok) }
+  pre .no { color: var(--stop) }
+  pre .wa { color: var(--warn) }
+
+  /* ------------------------------------------------------------------ tables */
+  .scroll { overflow-x: auto; margin: 0 0 1.2rem; border: 1px solid var(--line); border-radius: 6px }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; min-width: 34rem }
+  th, td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--line); vertical-align: top }
+  thead th { color: var(--dim); font-weight: 650; background: var(--panel); white-space: nowrap }
+  tbody tr:last-child td { border-bottom: 0 }
+  td code { white-space: nowrap }
+  table.flags { min-width: 30rem }
+  table.flags td:first-child { white-space: nowrap; width: 1%; font-family: ui-monospace, Menlo, monospace; font-size: .84rem }
+
+  /* ------------------------------------------------------------------- boxes */
+  .note, .warn, .stop {
+    border-left: 3px solid var(--line); background: var(--panel);
+    padding: .85rem 1rem; margin: 0 0 1.2rem; border-radius: 0 5px 5px 0; font-size: .95rem;
+  }
+  .note > :last-child, .warn > :last-child, .stop > :last-child { margin-bottom: 0 }
+  .warn { border-left-color: var(--warn) }
+  .stop { border-left-color: var(--stop) }
+  .note { border-left-color: var(--accent) }
+  .label { display: block; font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-bottom: .3rem; color: var(--dim) }
+
+  /* --------------------------------------------------------------------- toc */
+  nav.toc { font-size: .875rem; padding: 1.5rem 0 0 }
+  nav.toc ol { list-style: none; padding: 0; margin: 0 }
+  nav.toc li { margin: 0 }
+  nav.toc a { display: block; padding: .22rem 0 .22rem .55rem; color: var(--dim); text-decoration: none; border-left: 2px solid var(--line) }
+  nav.toc a:hover { color: var(--accent); border-left-color: var(--accent) }
+  nav.toc .grp { margin-top: 1rem; font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding-left: .55rem }
+  nav.toc summary {
+    cursor: pointer; padding: .7rem .9rem; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 6px; font-weight: 650; margin-bottom: 1rem;
+  }
+
+  /* ------------------------------------------------------------------- misc */
+  main { padding: 1.5rem 0 5rem }
+  @media (min-width: 62rem) { main { padding: 2.5rem 0 6rem } }
+  header.top { padding: 2.5rem 0 0 }
+  details.more { border: 1px solid var(--line); border-radius: 6px; padding: .1rem .95rem; margin: 0 0 1.2rem; background: var(--panel) }
+  details.more > summary { cursor: pointer; padding: .7rem 0; font-weight: 650; font-size: .95rem }
+  details.more[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: .9rem }
+  footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); color: var(--dim); font-size: .9rem }
+  .pill { display: inline-block; font-size: .74rem; padding: .12rem .5rem; border: 1px solid var(--line); border-radius: 99px; color: var(--dim); background: var(--panel); white-space: nowrap }
+  .cmdhead { font-family: ui-monospace, Menlo, monospace; font-size: 1.02rem; background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: .5rem .7rem; margin: 1.8rem 0 .7rem; overflow-x: auto; white-space: nowrap }
+  .measured { font-size: .86rem; color: var(--faint); margin-top: -.6rem; margin-bottom: 1.1rem }
+</style>
+
+<div class="shell">
+<header class="top">
+  <p class="kicker">Documentação em português · deck 0.1.0</p>
+  <h1>deck</h1>
+  <p class="lede">
+    Um plano de controle para agentes de codificação que trabalham em vários
+    repositórios: o mapa, as decisões, o contexto, a prova e quanto custou.
+  </p>
+  <p style="font-size:.92rem;color:var(--dim)">
+    Esta página é a tradução e a consolidação, em português do Brasil, dos seis
+    documentos em inglês do repositório. Ela cobre o que o deck é, por que
+    existe, o que ele de fato faz, todos os comandos com todas as suas opções, e
+    onde ele ainda não chega. Os nomes de comandos, flags e arquivos ficam em
+    inglês, exatamente como são digitados.
+    <br>
+    <a href="https://github.com/devfilipe/deck">Código-fonte</a> ·
+    <a href="./index.html">English landing page</a>
+  </p>
+</header>
+
+<div class="layout">
+
+<nav class="toc" aria-label="Índice">
+  <details>
+    <summary>Índice</summary>
+    <ol>
+      <li class="grp">Fundamentos</li>
+      <li><a href="#o-problema">1. O problema</a></li>
+      <li><a href="#quatro-naturezas">2. As quatro naturezas</a></li>
+      <li><a href="#vocabulario">3. Vocabulário</a></li>
+      <li><a href="#arquitetura">4. Motor e pack</a></li>
+      <li><a href="#nao-faz">5. O que o deck não faz</a></li>
+      <li><a href="#instalacao">6. Instalação</a>
+        <ul>
+          <li><a href="#colecao">o que é uma coleção</a></li>
+          <li><a href="#fluxos">os quatro fluxos, em uma página</a></li>
+        </ul>
+      </li>
+
+      <li class="grp">As superfícies</li>
+      <li><a href="#mapa">7. O mapa</a></li>
+      <li><a href="#decisoes">8. As decisões</a></li>
+      <li><a href="#contexto">9. O contexto</a>
+        <ul>
+          <li><a href="#onde-pousa">onde cada artefato pousa</a></li>
+          <li><a href="#ciclo">o ciclo inteiro: mount · save · unmount</a></li>
+        </ul>
+      </li>
+      <li><a href="#packs">10. Os packs</a></li>
+      <li><a href="#prova">11. A prova</a>
+        <ul><li><a href="#degraus">os quatro degraus</a></li></ul>
+      </li>
+      <li><a href="#tendencia">12. A tendência</a></li>
+      <li><a href="#quadro">13. O quadro</a></li>
+      <li><a href="#entrega">14. A entrega</a></li>
+      <li><a href="#conta">15. A conta</a></li>
+      <li><a href="#perguntas">16. As perguntas</a></li>
+      <li><a href="#modelo">17. Onde o modelo entra</a></li>
+      <li><a href="#superficies">18. Diagnóstico e superfícies</a></li>
+
+      <li class="grp">Honestidade</li>
+      <li><a href="#limites">19. O que o deck impõe, e suas fronteiras</a></li>
+      <li><a href="#estado">20. Estado do projeto</a></li>
+      <li><a href="#para-quem">21. É para você?</a></li>
+      <li><a href="#casos">22. Casos de uso</a></li>
+      <li><a href="#indice-comandos">23. Índice de comandos</a></li>
+      <li><a href="#numeros">24. Os números desta página</a></li>
+    </ol>
+  </details>
+</nav>
+
+<main>
+
+<p>
+  Um agente de codificação escreve o código. O que ele não tem como saber é como
+  <em>a sua equipe</em> entrega esse código: quais repositórios uma mudança
+  realmente alcança, até onde esta entrega em particular precisa ser verificada
+  antes que alguém a chame de pronta, quais máquinas ela pode tocar, o que a
+  equipe decidiu meses atrás e o que ainda precisa ser perguntado.
+</p>
+<p>
+  Esse conhecimento mora na cabeça das pessoas, em hábitos e numa página de wiki
+  que ninguém abre — que é exatamente por que a saída de um agente é irregular e
+  por que revisá-la cansa. O deck é onde uma equipe escreve isso: uma vez, sob
+  controle de versão, num formato contra o qual um agente consegue agir e que um
+  revisor consegue conferir depois.
+</p>
+
+<div class="note">
+  <span class="label">Antes de tudo</span>
+  <p>
+    O deck <strong>não escreve o seu código</strong>, não cria agentes, não cria
+    worktrees e não desenha interface própria. O Claude Code já faz as três
+    coisas, e melhor. O deck fornece a parte que um runtime de agente não tem
+    como saber — <em>o seu workspace</em> — e a entrega pelos mecanismos que o
+    Claude Code já tem. É uma CLI antes de qualquer outra coisa: tudo funciona
+    num terminal, num script ou na CI, sem nenhum agente presente.
+  </p>
+</div>
+
+
+<!-- ==================================================================== -->
+<h2 id="o-problema"><span class="num">1.</span>O problema<a class="anchor" href="#o-problema">#</a></h2>
+
+<p>
+  Peça uma funcionalidade a um agente num sistema de vários repositórios e três
+  modos de falha aparecem. Nenhum deles é um problema do modelo.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Falha</th><th>Como ela aparece</th><th>O que está realmente faltando</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Ele esquece a cadeia</strong></td>
+      <td>O schema muda, o cliente não. O build passa e o comportamento não existe.</td>
+      <td>Um grafo declarado do que uma mudança propaga.</td>
+    </tr>
+    <tr>
+      <td><strong>Ele decide em silêncio</strong></td>
+      <td>Escolhe o caminho rápido de implantação, ou pula a suíte de regressão, e nada na saída diz isso.</td>
+      <td>Decisões recorrentes declaradas uma vez, com um estado explícito de “me pergunte”.</td>
+    </tr>
+    <tr>
+      <td><strong>Ele não consegue provar nada</strong></td>
+      <td>“Pronto” é uma afirmação. Ninguém consegue conferir qual degrau de verificação foi alcançado.</td>
+      <td>Gates que registram evidência e nunca arredondam <em>não executado</em> para <em>passou</em>.</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<p>
+  Nada disso é conhecimento que um modelo consiga derivar do código. É
+  conhecimento sobre <em>o seu</em> sistema, e precisa estar escrito em algum
+  lugar. O deck é esse lugar — e nada além disso.
+</p>
+
+<h3 id="tres-coisas-suas">Três coisas vêm de você</h3>
+<p>
+  O deck entrega um motor e nenhum conhecimento de domínio. Três coisas são
+  suas, e nenhuma delas é uma lacuna da ferramenta:
+</p>
+<ul>
+  <li>
+    <strong>As arestas</strong> — quais repositórios uma mudança obriga você a
+    tocar. Um manifesto declara um <em>checkout</em>, nunca uma
+    <em>propagação</em>, então nenhum importador consegue derivá-las.
+  </li>
+  <li>
+    <strong>Os comandos</strong> — como o seu projeto compila, implanta e testa.
+    O deck executa as strings que o seu pack declara; ele nunca ouviu falar de
+    <code>bitbake</code> nem de <code>helm</code>.
+  </li>
+  <li>
+    <strong>As decisões</strong> — as escolhas que a sua equipe refaz toda
+    semana, escritas uma vez.
+  </li>
+</ul>
+
+
+<!-- ==================================================================== -->
+<h2 id="quatro-naturezas"><span class="num">2.</span>As quatro naturezas, e a regra que decide entre elas<a class="anchor" href="#quatro-naturezas">#</a></h2>
+
+<p>
+  Esta é a espinha dorsal de tudo. Se você levar só uma coisa desta página, leve
+  esta seção.
+</p>
+<p>
+  Uma equipe quer segurar uma lista longa de coisas: arquitetura, padrões,
+  estilo, formatação, diretrizes, segurança, qualidade, métricas, testes, build,
+  deploy, release. Toda coisa dessa lista é <strong>uma de quatro
+  naturezas</strong>. Acertar a natureza é a maior parte do trabalho, porque
+  cada uma tem um custo diferente e um modo de falha diferente.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Natureza</th><th>O que é</th><th>Onde mora</th><th>Como age</th><th>Quanto custa</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Fato</strong></td>
+      <td>algo verdadeiro sobre este workspace</td>
+      <td>o <em>descriptor</em>, versionado na coleção</td>
+      <td>responde a uma pergunta</td>
+      <td>nada</td>
+    </tr>
+    <tr>
+      <td><strong>Invariante</strong></td>
+      <td>uma restrição que está sempre valendo</td>
+      <td><code>rules/</code> e <code>skills/</code> num pack</td>
+      <td>chega ao agente como contexto</td>
+      <td>contexto <em>toda vez</em> que um arquivo correspondente é lido</td>
+    </tr>
+    <tr>
+      <td><strong>Decisão</strong></td>
+      <td>uma escolha com mais de uma resposta defensável</td>
+      <td><code>toggles/</code> num pack</td>
+      <td>é perguntada, uma vez, e registrada</td>
+      <td>uma pergunta, uma vez</td>
+    </tr>
+    <tr>
+      <td><strong>Prova</strong></td>
+      <td>um comando que passa ou falha</td>
+      <td><code>gates/</code> num pack</td>
+      <td>produz evidência</td>
+      <td>nada até rodar</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<div class="note">
+  <span class="label">A regra</span>
+  <p style="font-size:1.08rem">
+    <strong>Se uma máquina consegue verificar, é um gate — nunca uma regra.</strong>
+  </p>
+  <p>
+    Contar a um agente sobre indentação, ordem de imports ou vírgula final é
+    pagar tokens para sempre por algo que <code>ruff format</code> resolve em 40
+    milissegundos. Guia de estilo pertence à configuração do formatador, e o
+    formatador pertence à escada de verificação.
+  </p>
+</div>
+
+<p>
+  Regras são para o que nenhum comando consegue decidir: para que lado uma
+  dependência pode apontar, por que esta fronteira existe, o que quebra se você
+  atravessá-la. Uma regra de arquitetura ganha o seu lugar quando nomeia a
+  <strong>consequência</strong>: “handlers validam na borda; nada abaixo
+  reconfere formatos” vale contexto. “Este diretório contém handlers” não vale —
+  o agente consegue ver isso sozinho.
+</p>
+<p>
+  A mesma regra ordena as decisões: se existe uma resposta certa, não é uma
+  decisão — escreva como regra ou imponha como gate. Um toggle cujo valor
+  ninguém jamais mudaria é uma pergunta que você vai obrigar pessoas a responder
+  para sempre.
+</p>
+
+<h3 id="a-quinta-saida">Quando nenhuma das quatro serve, é uma pergunta</h3>
+<p>
+  Uma decisão tem mais de uma resposta <em>e</em> você consegue dizer o que
+  defende cada uma. Quando você não consegue — dois trechos de código discordam
+  e ninguém sabe se aquilo foi decidido ou se derivou —, nenhuma das quatro
+  naturezas serve, e forçar uma delas destrói a única coisa que valia a pena
+  guardar. Arquivada como toggle, aquilo passa a ler-se como “nós escolhemos”.
+  Arquivada como regra, lê-se como “nós exigimos”. As duas são mentiras sobre
+  algo que ninguém explicou.
+</p>
+<p>
+  Para isso existe a <strong>consulta</strong>: <code>deck ask</code> registra a
+  pergunta, uma pessoa responde, e a resposta sobrevive à sessão que a levantou.
+  Veja <a href="#perguntas">§16</a>.
+</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="vocabulario"><span class="num">3.</span>Vocabulário<a class="anchor" href="#vocabulario">#</a></h2>
+
+<p>
+  Termos próprios do deck, usados no resto desta página. Introduzidos aqui para
+  que nenhuma seção adiante dependa de você adivinhar.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Termo</th><th>O que significa no deck</th></tr></thead>
+  <tbody>
+    <tr><td><strong>workspace</strong></td><td>a árvore que o deck administra, com um ou mais repositórios. Nomeada pelo seu descriptor — <code>_workspaces/&lt;nome&gt;/&lt;escopo&gt;/workspace.yaml</code> na coleção, ou <code>.deck/workspace.yaml</code> quando não há coleção</td></tr>
+    <tr><td><strong>descriptor</strong></td><td>esse arquivo: o registro de repositórios, as arestas entre eles, os alvos, os quadros</td></tr>
+    <tr><td><strong>registry</strong></td><td>o bloco <code>repos:</code> — toda unidade de mudança que o deck conhece</td></tr>
+    <tr><td><strong>unidade de mudança</strong></td><td>um repositório, ou um pacote dentro de um monorepo. O deck não faz distinção</td></tr>
+    <tr><td><strong>scope</strong></td><td>um subconjunto nomeado do registry: uma iniciativa, com quadro e postura próprios</td></tr>
+    <tr><td><strong>pack</strong></td><td>um diretório de conhecimento da equipe — decisões, comandos, regras, skills. Também é um plugin do Claude Code</td></tr>
+    <tr><td><strong>toggle</strong></td><td>uma decisão com mais de uma resposta defensável, escrita uma vez com o seu raciocínio</td></tr>
+    <tr><td><strong>gate</strong></td><td>um comando que passa ou falha, num degrau da escada</td></tr>
+    <tr><td><strong>escada</strong> (<em>ladder</em>)</td><td>os degraus que a verificação sobe: <code>static → build → deploy → behavior</code></td></tr>
+    <tr><td><strong>degrau</strong> (<em>rung</em>)</td><td>um nível dessa escada</td></tr>
+    <tr><td><strong>mount</strong></td><td>colocar as regras de um pack dentro dos repositórios que uma tarefa toca, pela duração daquela tarefa</td></tr>
+    <tr><td><strong>postura</strong></td><td>o conjunto de valores de toggle em vigor — para um workspace, um scope, um repositório ou uma tarefa</td></tr>
+    <tr><td><strong>impacto / alcance</strong></td><td>quais repositórios uma mudança obriga você a revisitar. Não quais você vai editar</td></tr>
+    <tr><td><strong>bundle</strong></td><td>a página de prontidão para merge: o que mudou, o que foi verificado, o que não foi</td></tr>
+    <tr><td><strong>consulta</strong> (<em>consultation</em>)</td><td>uma pergunta para a qual o catálogo de decisões não tem entrada, registrada por <code>deck ask</code></td></tr>
+  </tbody>
+</table></div>
+
+
+<!-- ==================================================================== -->
+<h2 id="arquitetura"><span class="num">4.</span>Motor e pack: onde o deck fica<a class="anchor" href="#arquitetura">#</a></h2>
+
+<p>
+  O motor conhece a <em>forma</em> das coisas. Todo específico — um comando de
+  build, um passo de implantação, uma decisão de domínio, um marcador de
+  detecção — chega de um <em>pack</em> de extensão, como dado declarativo.
+</p>
+
+<pre><code>   deck (motor, MIT)                 pack (seu, privado ou compartilhado)
+   ─────────────────────             ──────────────────────────────────────
+   como uma escada funciona   ←───   quais degraus, e seus comandos
+   como toggles se resolvem   ←───   quais decisões existem neste domínio
+   como um workspace é achado ←───   quais arquivos identificam um
+   como artefatos são colocados ←─   quais artefatos, e onde se aplicam
+</code></pre>
+
+<p>
+  A regra que mantém isso honesto: <strong>se atender a uma organização exige
+  editar o motor, a funcionalidade está na camada errada.</strong> Uma palavra
+  de domínio aparecendo no código do motor é um bug, e a regra do próprio
+  projeto (<code>_workspaces/all/default/rules/design-line.md (em deck-ai-packs)</code>) diz isso.
+</p>
+
+<h3 id="camadas">Quatro camadas, cada uma mais específica</h3>
+<pre><code>   deck                    o motor, e um catálogo universal de decisões
+     │                     vem com a ferramenta · sem conhecimento de domínio
+     ▼
+   foundations pack        DRY, SRP, coesão, fail-fast, testabilidade…
+     │                     publicado, agnóstico de linguagem · opcional
+     ▼
+   organisation pack       sua arquitetura, seu build, sua postura de segurança,
+     │                     seus comandos, seus hosts, suas convenções
+     ▼
+   project / repo pack     o que este produto ou este repositório acrescenta
+</code></pre>
+
+<h3 id="recusar">Recusar é melhor que adivinhar</h3>
+<p>
+  Dois packs reivindicam o mesmo nome; dois gates compartilham um id; uma
+  variável não resolve; um repositório não está no descriptor. Em todos os casos
+  o deck reporta e para. Ele não ranqueia, não assume um padrão, não escolhe o
+  provável. Uma ferramenta que adivinha sobre uma mudança em vários repositórios
+  é uma ferramenta que ninguém consegue auditar depois.
+</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="nao-faz"><span class="num">5.</span>O que o deck deliberadamente não constrói<a class="anchor" href="#nao-faz">#</a></h2>
+
+<p>
+  Esta é a metade importante do projeto. O Claude Code já entrega boa parte do
+  que um “sistema multiagente de entrega” reinventaria.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Capacidade</th><th>O Claude Code já tem</th><th>A posição do deck</th></tr></thead>
+  <tbody>
+    <tr><td>Criar e coordenar agentes</td><td>subagentes; o runtime de Workflow</td><td><strong>Nunca reimplementado.</strong> O deck emite um plano; um workflow o executa</td></tr>
+    <tr><td>Isolar trabalho paralelo</td><td><code>--worktree</code>, <code>isolation: worktree</code>, limpeza automática</td><td><strong>Nunca reimplementado.</strong> Uma worktree é feita de um repositório; um workspace do deck costuma ter vários, e a raiz muitas vezes nem é um checkout. O que separa tarefas concorrentes aqui é o agrupamento</td></tr>
+    <tr><td>Carregar instruções por diretório</td><td><code>CLAUDE.md</code>, <code>.claude/rules/</code> com <code>paths:</code>, skills</td><td><strong>Usado como mecanismo.</strong> O mount coloca artefatos nessas superfícies em vez de inventar um carregador</td></tr>
+    <tr><td>Habilitar extensões por diretório</td><td>plugins em escopo user / project / local</td><td><strong>Usado como mecanismo.</strong> Um mount é, em boa parte, três linhas em <code>settings.local.json</code></td></tr>
+    <tr><td>Perguntar algo ao operador</td><td><code>AskUserQuestion</code></td><td><strong>Usado como mecanismo.</strong> O deck fornece o texto; o Claude Code desenha a caixa</td></tr>
+    <tr><td>Pausar para aprovação</td><td>plan mode</td><td>O toggle <code>plan_approval</code> é a <em>política</em>; o plan mode é o <em>mecanismo</em></td></tr>
+    <tr><td>Revisar código e segurança</td><td><code>/code-review</code>, <code>/security-review</code></td><td><strong>Não reconstruído.</strong> O deck não revisa código: ele nomeia as revisões que ainda faltam</td></tr>
+    <tr><td>Reportar custo da sessão</td><td><code>cost.total_cost_usd</code></td><td><strong>Tratado como autoritativo.</strong> O deck mostra o número do Claude Code ao lado da própria estimativa</td></tr>
+  </tbody>
+</table></div>
+
+<p>
+  O que sobra é a parte que nenhum runtime de agente tem como saber:
+  <strong>este workspace</strong>. É toda a área de atuação do deck.
+</p>
+
+<div class="warn">
+  <span class="label">Dito com todas as letras</span>
+  <p>
+    O deck <strong>registra</strong> uma arquitetura; ele não a
+    <strong>impõe</strong>. Uma regra de arquitetura chega ao agente como texto
+    e o agente pode ignorá-la. O que é imposto por código, e não por instrução,
+    está listado em <a href="#limites">§19</a> — e a lista é curta de
+    propósito.
+  </p>
+</div>
+
+
+<!-- ==================================================================== -->
+<h2 id="instalacao"><span class="num">6.</span>Instalação<a class="anchor" href="#instalacao">#</a></h2>
+
+<pre><code>git clone https://github.com/devfilipe/deck.git ~/tools/deck
+ln -s ~/tools/deck/plugins/deck/bin/deck ~/.local/bin/deck
+deck --help</code></pre>
+
+<p>
+  Python 3.10+ e PyYAML. <code>git</code> para quase tudo; <code>tmux</code> só
+  para <code>deck ui</code>. Sem passo de build e sem virtualenv: o ponto de
+  entrada roda o pacote a partir do clone.
+</p>
+
+<h3 id="opcoes-globais">As opções globais</h3>
+<div class="scroll"><table class="flags">
+  <tbody>
+    <tr><td><code>-h</code>, <code>--help</code></td><td>Existe em todos os níveis. <code>deck --help</code> lista os 33 comandos de primeiro nível; <code>deck &lt;comando&gt; --help</code> lista as opções daquele comando; e nos sete comandos que têm subcomandos, <code>deck &lt;comando&gt; &lt;sub&gt; --help</code> desce mais um nível.</td></tr>
+    <tr><td><code>--version</code></td><td>Imprime a versão. Hoje: <code>deck 0.1.0</code>.</td></tr>
+    <tr><td><code>--scope NAME</code></td><td>Vem <em>antes</em> do comando e existe porque um produto grande é trabalhado em pedaços. Um <em>scope</em> nomeia um subconjunto do registry — “esta iniciativa são estes seis de quarenta” — e carrega o quadro daqueles repositórios e a postura que vale enquanto se trabalha neles. <code>deck --scope payments board plan</code> restringe o comando à iniciativa. Ele <strong>nunca</strong> restringe o grafo: <code>deck impact</code> continua reportando a cadeia inteira e marcando o que cai fora, porque um subconjunto que esconde uma aresta é pior do que nenhum subconjunto.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="plugin">Instalar também como plugin do Claude Code</h3>
+<pre><code>claude plugin marketplace add ~/tools/deck      <span class="c"># ou a URL do GitHub</span>
+claude plugin install deck@deck</code></pre>
+<p>
+  Isso adiciona <strong>onze skills</strong> — <code>workspace</code>,
+  <code>toggles</code>, <code>gates</code>, <code>metrics</code>,
+  <code>board</code>, <code>bundle</code>, <code>mount</code>,
+  <code>packs</code>, <code>asking</code>, <code>cost</code>,
+  <code>doctor</code> — que ensinam o Claude a consultar o plano de controle em
+  vez de adivinhar, mais dois hooks: <code>SessionStart</code>, que registra a
+  sessão como <em>seguradora</em> do que está montado, e <code>SessionEnd</code>,
+  que devolve o que ficou montado.
+</p>
+<p>
+  Isso é pago em toda sessão. <code>claude plugin details deck</code> imprime o
+  custo do que você instalou, que é o único número que vale citar. Instalar
+  habilita em escopo <em>user</em> — todo projeto, use deck ou não. A maioria
+  das equipes quer o contrário:
+</p>
+<pre><code>claude plugin disable deck@deck --scope user      <span class="c"># não em todo lugar</span>
+cd ~/work/projs
+claude plugin enable deck@deck --scope project   <span class="c"># aqui, e para a equipe</span></code></pre>
+
+<h3 id="comeco">Do zero a um workspace utilizável</h3>
+<pre><code>cd ~/work/projs
+deck setup --packs-root ../ai-packs --create-packs</code></pre>
+<p>
+  Um comando: lê como a sua árvore está montada, escreve o descriptor, cria um
+  pack esqueleto por projeto, liga os dois, e termina nas duas ou três coisas
+  que só uma pessoa pode decidir.
+</p>
+<h3 id="colecao">O que é uma coleção, e onde ela fica</h3>
+<p>
+  Uma <strong>coleção</strong> é um diretório — nada além disso. O que a torna
+  uma coleção é o que ela tem no topo: <code>_workspaces/</code> ou
+  <code>_repos/</code>. Um diretório apontado por <code>packs_root</code> que
+  não tem nenhum dos dois o deck recusa, dizendo exatamente isso.
+</p>
+<p>
+  <strong>O repositório não é a coleção.</strong> O repositório dá
+  versionamento, revisão e permissões; a coleção é o subdiretório que o deck
+  lê. Por convenção ela se chama <code>packs/</code>:
+</p>
+<pre><code>   xyz-ai-packs/            ← o REPOSITÓRIO: versionado, revisado, com permissões
+   └── packs/               ← a COLEÇÃO: é para cá que packs_root aponta
+       ├── _workspaces/
+       │   └── all/default/     vale para todo repositório, sempre
+       └── _repos/
+           ├── api/             vale só para o repositório `api`
+           └── web/</code></pre>
+<p>
+  <strong>Os nomes fazem a ligação</strong> — não há tabela de mapeamento,
+  porque tabela de mapeamento é arquivo que ninguém mantém atualizado.
+</p>
+<pre><code>   projs/                       xyz-ai-packs/packs/
+   ├── group1/                  ├── _workspaces/
+   │   ├── proj1/               │   └── all/default/    ← todo repositório
+   │   └── proj2/               └── _repos/
+   └── group2/                      ├── proj1/  ◄──────── casado pelo nome
+       ├── proj3/                   ├── group1/proj2/  ← grupos espelhados
+       └── proj4/                   └── group2/proj3/
+                                    (proj4 não tem pack — o deck diz isso
+                                     em vez de ficar quieto)</code></pre>
+
+<h3 id="duas-camadas">Dois eixos, e eles são independentes</h3>
+<p>
+  <strong>Onde a coleção mora</strong> é só um caminho em
+  <code>packs_root</code>. Um repositório separado, um diretório dentro de um
+  repositório de produto, qualquer lugar do disco — o deck não distingue. Esse
+  eixo decide quem revisa o conhecimento, e nada mais.
+</p>
+<p>
+  <strong>A que o pack se aplica</strong> vem de onde ele está.
+  <code>_repos/&lt;nome&gt;/</code> é aquele repositório e nenhum irmão.
+  <code>_workspaces/&lt;nome&gt;/&lt;escopo&gt;/</code> é uma camada sobre o
+  workspace: <code>all</code> e <code>default</code> sempre existem e são a
+  base, e uma camada sob outro nome ou outro escopo se sobrepõe a ela,
+  arquivo a arquivo.
+</p>
+<pre><code>   ordem de mesclagem, do mais geral para o mais específico:
+
+   _workspaces/all/default   →   _workspaces/all/&lt;escopo&gt;
+                             →   _workspaces/&lt;nome&gt;/default
+                             →   _workspaces/&lt;nome&gt;/&lt;escopo&gt;
+                             →   _repos/&lt;repo&gt;
+
+   o mais específico tem a última palavra</code></pre>
+<p>
+  Quando os dois eixos discordam sobre um mesmo arquivo, <strong>o nome
+  vence</strong>: um workspace é um lugar e um escopo é uma fase, e a fase é a
+  coisa temporária.
+</p>
+<div class="note">
+  <span class="label">Duas coleções podem ter, cada uma, um <code>all/default</code></span>
+  <p>
+    Isso é camada, não colisão: elas mesclam na ordem escrita em
+    <code>packs_root</code>, e <code>deck packs</code> imprime o que a
+    posterior tomou da anterior. Colisão é o mesmo nome <em>dentro</em> de uma
+    coleção — aí o deck recusa, porque o vencedor seria a ordem que o
+    filesystem devolveu.
+  </p>
+</div>
+
+
+<!-- ==================================================================== -->
+<h3 id="fluxos">Os quatro fluxos, em uma página</h3>
+<p>
+  Tudo abaixo é composto destes quatro. Se você ler só uma coisa desta página,
+  leia esta.
+</p>
+
+<p><strong>A · Começar um workspace</strong> — uma vez por checkout.</p>
+<pre><code>   você                    deck                         disco
+   ────                    ────                         ─────
+   deck setup          ──► lê como a árvore está     ──► X/_workspaces/&lt;nome&gt;/default/
+     --packs-root X        montada, deriva o registry        workspace.yaml (versionado)
+     --workspace &lt;nome&gt;                                 ──► ~/.deck/workspaces/&lt;nome&gt;/
+     --create-packs        cria o esqueleto da coleção        machine.yaml (só seu)
+                                                          ──► X/_repos/&lt;cada repo&gt;/
+                           │
+                           └─► e para nas duas coisas que só você decide:
+                               as arestas `impacts:`  ·  a allowlist `targets:`</code></pre>
+
+<p><strong>B · Uma tarefa, do início ao fim</strong> — o laço do dia a dia.</p>
+<pre><code>   deck mount --task T --repos api --brief "..."
+        │
+        ├─► expande pelo grafo: api força server? server entra também
+        ├─► camada de workspace  ──► &lt;raiz&gt;/.claude/  +  CLAUDE.local.md
+        └─► pack de cada repo     ──► &lt;repo&gt;/.claude/
+        │
+        ▼
+   ┌─ abrir a sessão Claude AQUI, e não antes ────────────────────┐
+   │  skills, agents e CLAUDE.local.md são lidos no lançamento    │
+   │  regras com `paths:` carregam quando um arquivo casa         │
+   └──────────────────────────────────────────────────────────────┘
+        │
+        ▼
+   deck gate run --task T        a escada, e a evidência em disco
+        │
+        ▼
+   deck save --task T            o que a IA corrigiu volta à coleção
+        │                        (deck doctor avisa se você esquecer)
+        ▼
+   deck bundle --task T          o que o revisor lê em vez do diff
+        │
+        ▼
+   deck unmount --task T         a árvore volta ao que era</code></pre>
+
+<p><strong>C · Uma mudança que atravessa repositórios</strong> — por que o deck existe.</p>
+<pre><code>   deck impact api-schema
+   ┌──────────────────────────────────────────────────────────┐
+   │ a change in api-schema reaches 3 repositories            │
+   │                                                          │
+   │   1. api-schema     build api-schema     ◄── você mexeu  │
+   │   2. api-server     build api-server     ◄── tem que     │
+   │   3. web-client     build web-client         acompanhar  │
+   │   4. e2e-suite      (downstream — não produz artefato)   │
+   └──────────────────────────────────────────────────────────┘
+        │
+        └─► deck mount --task T --repos api-schema
+            monta os quatro, não um — esquecer um deles é o
+            erro que a expansão existe para impedir</code></pre>
+
+<p><strong>D · O conhecimento se acumula</strong> — o que separa a segunda tarefa da primeira.</p>
+<pre><code>   tarefa 1        a IA descobre algo, ou uma regra estava errada
+       │
+       │  deck save
+       ▼
+   COLEÇÃO         você revisa o diff e commita     ← vira do time AQUI
+       │
+       │  deck mount
+       ▼
+   tarefa 2        a IA já começa sabendo
+   tarefa 3
+   ...
+
+   sem o save, cada tarefa recomeça do zero e a mesma
+   correção é feita de novo, por outra pessoa, na semana seguinte</code></pre>
+
+<div class="note">
+  <span class="label">A ordem que evita retrabalho</span>
+  <p>
+    <code>save</code> antes de <code>unmount</code>. O <code>unmount</code>
+    sozinho preserva o que foi editado — não apaga —, mas deixa a edição órfã na
+    árvore de trabalho, e aí já não há manifesto que saiba de onde ela veio.
+  </p>
+</div>
+
+
+<!-- ==================================================================== -->
+<h2 id="mapa"><span class="num">7.</span>O mapa — onde está tudo, e o que uma mudança alcança<a class="anchor" href="#mapa">#</a></h2>
+
+<p>
+  O conceito: um <strong>registry</strong> de unidades de mudança e as
+  <strong>arestas</strong> entre elas. O registry o deck consegue derivar de
+  como a sua árvore já está montada. As arestas, não — e é por isso que existem
+  comandos separados para as duas coisas.
+</p>
+
+<h3 id="duas-arestas">Dois tipos de aresta</h3>
+<p>
+  <code>impacts:</code> é <strong>direcional e ordenada</strong>. Ela responde
+  duas perguntas com uma aresta: <em>o que preciso revisitar</em> e <em>em que
+  ordem</em>. É a forma certa para a maior parte de um workspace, e é o que
+  torna possível a ordem topológica, a cadeia de build e a checagem de ciclos.
+</p>
+<p>
+  É a forma <em>errada</em> para uma relação que responde à primeira pergunta e
+  não tem resposta para a segunda. Um repositório de schema semeia uma
+  configuração que um repositório de scripts lê, e o repositório de scripts é
+  dono da linha de comando que o primeiro chama em tempo de execução: cada lado
+  quebra o outro, com evidência de arquivo e linha nos dois, e nenhum vem
+  primeiro. Havia três formas de segurar isso e só uma preserva as duas metades:
+</p>
+<div class="scroll"><table>
+  <thead><tr><th>Alternativa</th><th>O que ela custa</th></tr></thead>
+  <tbody>
+    <tr><td>Declarar uma direção e escrever a outra como regra em prosa</td><td>A restrição sobrevive como texto. Nenhum comando consegue usá-la, e <code>deck impact</code> no segundo repositório não menciona o primeiro</td></tr>
+    <tr><td>Declarar as duas como <code>impacts:</code></td><td>Um ciclo. A ordem topológica deixa de existir para aquele par, e todo consumidor de <code>deck order</code> — a escada, o plano, o bundle — passa a lidar com um grafo que não tem mais uma</td></tr>
+    <tr><td><strong>Um terceiro tipo de aresta</strong></td><td><code>couples:</code>, simétrica e sem ordem</td></tr>
+  </tbody>
+</table></div>
+<p>
+  <code>couples:</code> é lida por <code>deck impact</code>, que a lista
+  <em>separada</em> da cadeia ordenada, e por <code>deck mount</code>, que
+  coloca os packs de um repositório que o trabalho talvez tenha de editar. Ela é
+  lida por <strong>nada que ordena</strong>: a ordem topológica e a checagem de
+  ciclos nunca a olham, que é exatamente por que um acoplamento nunca consegue
+  tornar o grafo cíclico. É simétrica — declarar de um lado basta — e não é
+  transitiva, porque “força uma mudança em” compõe e “se puxam mutuamente” não.
+</p>
+<p>
+  A regra que decide onde ela aparece: <strong>uma superfície que reporta lê
+  <code>couples:</code>; uma superfície que ordena, agenda ou exclui, não.</strong>
+</p>
+
+<pre><code><span class="c">$ deck impact schema</span>
+a change in schema reaches 1 repository
+
+execution order:
+  1. schema
+  2. gen  build gen-all
+
+coupled with, in no order:
+  - runtime   (declared by schema)
+
+  A coupling is mutual and carries no order: revisit these, do not sequence them.
+  They take no part in the execution order above, and never in a build order.</code></pre>
+<p class="measured">Saída real, de um workspace sintético de três repositórios.</p>
+
+<h4>Os comandos do mapa</h4>
+
+<div class="cmdhead">deck root</div>
+<p>Imprime a raiz do workspace resolvida. Sem opções. A resolução da raiz tem quatro fontes e nunca adivinha; este comando diz qual venceu.</p>
+
+<div class="cmdhead">deck info [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--json</code></td><td>A mesma informação como JSON, para um script ou uma skill consumir em vez de fazer parsing de texto.</td></tr>
+</tbody></table></div>
+<p>Resumo: raiz, de qual fonte ela veio, se o descriptor existe, quais packs estão em jogo, os repositórios e os targets.</p>
+
+<div class="cmdhead">deck repos [--verbose] [--downstream-only] [--buildable-only]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--verbose</code></td><td>Acrescenta o caminho e o <code>build_target</code> de cada repositório, além do nome.</td></tr>
+  <tr><td><code>--downstream-only</code></td><td>Só os repositórios marcados <code>downstream: true</code> no descriptor. <em>Downstream</em> é a unidade que precisa ser mantida em dia mas não produz artefato — uma suíte fim a fim, tipicamente. Esse marcador não é decorativo: ele muda o agrupamento do quadro (<a href="#quadro">§13</a>).</td></tr>
+  <tr><td><code>--buildable-only</code></td><td>O complemento: tudo que <em>não</em> é <code>downstream</code>, ou seja, o que a cadeia de build de fato constrói.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck path &lt;repo&gt;</div>
+<p>O caminho absoluto de um repositório. Existe para que um script ou um gate não precise saber onde a sua árvore está montada.</p>
+
+<div class="cmdhead">deck get &lt;key&gt;</div>
+<p>Um campo do descriptor, por chave pontuada: <code>deck get repos.schema.path</code>. É o acesso de leitura ao descriptor sem escrever um parser de YAML no seu script.</p>
+
+<div class="cmdhead">deck packs [--repo REPO] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--repo REPO</code></td><td>Só os packs que se aplicam a esse repositório. Um pack pode ser do workspace inteiro, de um repositório, ou de um scope.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+</tbody></table></div>
+<p>Mostra quais packs estão em jogo, em ordem de merge (do mais geral para o mais específico) e quem sobrescreve quem. Estender uma entrada que o núcleo define exige repetir o <code>id</code> com <code>overrides: true</code>; uma colisão sem essa flag é recusada, para que ninguém sombreie uma decisão do núcleo por acidente.</p>
+
+<div class="cmdhead">deck paths [--json]</div>
+<p>Os diretórios nomeados que o workspace <em>usa mas não muda</em>. O deck faz uma pergunta sobre cada árvore que fica fora do workspace: <strong>você a edita ou só a invoca?</strong> Algo que você edita é um repositório, mesmo morando fora da raiz — ganha arestas, um pack e um lugar na escada. Algo que você só invoca é um <em>path</em>: não carrega arestas, não declara gates, nunca recebe mount. Um gate se refere a ele como <code>${path.scripts}</code>, que é o que mantém o pack portátil — o pack nomeia <code>scripts</code>, e o seu descriptor, que não é versionado, diz onde está o seu.</p>
+
+<div class="cmdhead">deck targets [--json]</div>
+<p>A allowlist de implantação: as máquinas que o deck deixa qualquer coisa alcançar. Uma lista vazia significa nenhuma implantação e nenhum gate de comportamento, o que é um começo perfeitamente razoável. Veja <a href="#limites">§19</a> para o que essa allowlist de fato impede hoje.</p>
+
+<div class="cmdhead">deck scopes [--json]</div>
+<div class="cmdhead">deck scope &lt;name&gt; [--json]</div>
+<p>
+  <code>scopes</code> lista os subconjuntos nomeados do registry;
+  <code>scope &lt;name&gt;</code> abre um: seus repositórios, seu quadro, sua
+  postura. O relatório de um scope diz o que a iniciativa alcança <em>e não
+  contém</em>, pelos dois caminhos por onde ela vaza: a cadeia ordenada que seus
+  <code>impacts:</code> alcançam, e qualquer par <code>couples:</code> do qual
+  ela segura um lado só. As duas metades são impressas separadas e nunca fundidas
+  numa lista — só uma delas carrega ordem, e uma lista única emprestaria essa
+  ordem à outra.
+</p>
+
+<div class="cmdhead">deck impact &lt;repo&gt; [--json]</div>
+<p>
+  O que uma mudança naquele repositório alcança, em ordem de execução, mais os
+  acoplamentos, separados. Esta é a pergunta que o agente não consegue responder
+  sozinho, e é o motivo de o deck existir.
+</p>
+
+<div class="cmdhead">deck order &lt;repos...&gt;</div>
+<p>A ordem topológica para um conjunto de repositórios. Editar o backend antes do schema produz um build que passa e um comportamento que não existe; este comando é o que diz a ordem certa a um script.</p>
+
+<div class="cmdhead">deck setup [--root ROOT] [--packs-root PACKS_ROOT] [--create-packs] [--repos [NAME ...]] [--force] [--dry-run]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--root ROOT</code></td><td>A raiz do workspace, quando a detecção não é o que você quer.</td></tr>
+  <tr><td><code>--packs-root PACKS_ROOT</code></td><td>Onde a coleção de packs mora, ou deveria morar. Esta é a decisão que o <code>setup</code> não toma por você: ele para de propósito e pergunta onde o conhecimento vai viver.</td></tr>
+  <tr><td><code>--create-packs</code></td><td>Cria um pack esqueleto para cada repositório, com todos os comentários intactos. Sem essa flag, o <code>setup</code> apenas liga o que já existe — que é o caminho de quem está entrando numa equipe que já tem a coleção.</td></tr>
+  <tr><td><code>--repos [NAME ...]</code></td><td>Só estes, separados por vírgula ou espaço. Existe porque um checkout não é a mesma coisa que o seu trabalho: um manifesto traz vinte repositórios onde seis são a obra. Curar aqui é mais barato do que podar depois um arquivo que o deck acabou de gerar — ninguém poda uma lista que não escolheu fazer.</td></tr>
+  <tr><td><code>--force</code></td><td>Recomeçar sobre um workspace que já tem configuração.</td></tr>
+  <tr><td><code>--dry-run</code></td><td>Só descoberta: o que o deck enxerga e o que faria, sem escrever nada.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck init [--force] [--from [SOURCE]]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--force</code></td><td>Sobrescreve arquivos existentes.</td></tr>
+  <tr><td><code>--from [SOURCE]</code></td><td>Além de criar <code>.deck/</code>, já importa o registry. Aceita <code>repo</code>, <code>submodules</code> ou <code>npm</code>; omita o valor para autodetectar.</td></tr>
+</tbody></table></div>
+<p>Cria <code>.deck/</code> a partir dos templates disponíveis. Se um pack traz <code>templates/workspace/workspace.yaml</code>, o deck usa esse em vez do genérico, e diz que usou — é assim que a segunda pessoa a montar o mesmo tipo de workspace recebe a mesma forma sem que ninguém lhe explique qual é.</p>
+
+<div class="cmdhead">deck import [source] [--write]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>source</code></td><td><code>repo</code> (manifesto do Google <code>repo</code>, com includes), <code>submodules</code> (via o próprio git) ou <code>npm</code> (globs de workspace). Autodetectado quando omitido.</td></tr>
+  <tr><td><code>--write</code></td><td>Grava o resultado no descriptor. Sem ela, o comando só mostra o que acrescentaria.</td></tr>
+</tbody></table></div>
+<div class="warn">
+  <p>
+    Nenhum importador deriva <code>impacts</code>, e isso não é uma limitação a
+    ser resolvida: <strong>um manifesto declara um checkout, nunca uma
+    propagação.</strong> Escreva as arestas à mão uma vez, ou peça um rascunho
+    com <code>deck propose impacts</code> (<a href="#modelo">§17</a>).
+  </p>
+</div>
+
+<h3 id="monorepo">Monorepo</h3>
+<p>
+  O motor não se importa se uma unidade de mudança é um checkout ou um
+  diretório. <code>repos:</code> é um registro de unidades; <code>path:</code> é
+  onde cada uma mora. Nada no grafo de impacto, na escada, no escopo dos packs
+  ou no quadro depende de a unidade ter um <code>.git</code> próprio.
+  <code>deck setup</code> encontra as unidades por evidência: um diretório com
+  um manifesto de pacote — <code>pyproject.toml</code>,
+  <code>package.json</code>, <code>Cargo.toml</code>, <code>go.mod</code>,
+  <code>pom.xml</code> e afins — declara-se uma unidade.
+</p>
+<p>
+  O que de fato difere é do git, não do deck: há um <code>.git</code> só,
+  um <code>.git/info/exclude</code> compartilhado, e a raiz do workspace é o
+  próprio repositório do produto. As duas consequências são estruturais — os
+  padrões de exclusão precisam estar ancorados na raiz da árvore de trabalho, e
+  cada bloco precisa ser marcado por tarefa <em>e</em> caminho, senão a escrita
+  de uma unidade substitui a da anterior. Erre isso e um agente rodando
+  <code>git add -A</code> comita os artefatos do deck dentro do produto.
+</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="decisoes"><span class="num">8.</span>As decisões — toggles<a class="anchor" href="#decisoes">#</a></h2>
+
+<p>
+  Um <strong>toggle</strong> é uma decisão com mais de uma resposta defensável,
+  escrita uma vez, com o raciocínio junto. O catálogo do núcleo traz
+  <strong>27 decisões</strong> e <strong>5 perfis</strong>; um pack acrescenta
+  as do seu domínio.
+</p>
+
+<h3 id="tres-estados">Três estados, e um deles não é um valor</h3>
+<p>
+  Um toggle tem um valor, ou tem o valor especial <code>ask</code>.
+  <code>ask</code> <strong>não é um valor</strong>: é uma instrução para
+  apresentar ao operador a pergunta que está escrita no próprio catálogo, no
+  estágio declarado. O texto vem do pack, não do agente que perguntou — que é o
+  que faz a mesma tarefa, pedida por uma pessoa sênior e por alguém na primeira
+  semana, produzir a mesma pergunta com as mesmas palavras.
+</p>
+
+<h3 id="precedencia">Sete camadas de precedência</h3>
+<pre><code>   mais forte ──────────────────────────────────────────────────► mais fraca
+
+   task file   DECK_&lt;ID&gt;    repos:         scopes:      values:    profile   catálogo
+               no ambiente  bloco          bloco        bloco                padrão
+   ─────────   ──────────   ──────         ───────      ───────    ───────   ───────
+   uma tarefa  um comando   um repositório uma          esta       uma       a política
+                                           iniciativa   máquina    postura   da equipe</code></pre>
+<p>
+  Cada camada é mais larga que a anterior: esta tarefa, este comando, este
+  código, esta iniciativa, esta máquina. <strong>A mais estreita que tem um
+  valor vence.</strong>
+</p>
+
+<h3 id="por-que-o-valor">Por que <em>este</em> valor, e não só de onde ele veio</h3>
+<p>
+  Uma camada diz <em>quem</em> decidiu; ela não diz <em>por quê</em>. Um
+  <code>gate_level</code> foi rebaixado de <code>deploy</code> para
+  <code>build</code> num workspace real porque a entrega passava por um caminho
+  de atualização de firmware que ninguém tinha ligado ao deck. O valor estava
+  certo e a frase que o explicava vivia num histórico de chat — então, meses
+  depois, nada o distinguia de um valor que ninguém tinha revisitado.
+</p>
+<pre><code>deck toggle set gate_level build --at workspace \
+  --why "a entrega passa por um caminho de firmware que ninguém ligou ao deck ainda"</code></pre>
+<p>
+  <code>--why</code> é registrado num mapa <code>reasons:</code> ao lado do mapa
+  <code>values:</code> que ele explica, no mesmo arquivo. É um irmão, e não um
+  valor mais rico, para que <code>values:</code> continue sendo a lista de duas
+  colunas que uma pessoa edita à mão, e para que um arquivo antigo sem
+  <code>reasons:</code> se leia como “não tem nenhuma” em vez de “tem metade”.
+</p>
+<p>
+  <code>deck toggle explain</code> imprime <strong>duas frases separadas</strong>,
+  porque elas têm dois autores: <em>por que o toggle existe</em> é o
+  <code>rationale</code> do catálogo, revisado por quem é dono do domínio;
+  <em>por que este valor foi escolhido</em> é de quem escolheu, e pertence a
+  este workspace apenas. Um valor sem nada registrado diz isso, e nomeia o
+  comando que registraria — em vez de ficar debaixo do parágrafo do catálogo e
+  passar por justificado.
+</p>
+<p>
+  Uma razão pertence ao valor para o qual foi escrita, então definir um valor
+  sem <code>--why</code> <strong>descarta a razão anterior e avisa que
+  descartou</strong>: uma frase deixada para trás continuaria justificando uma
+  decisão que não está mais no arquivo.
+</p>
+
+<h4>Os comandos das decisões</h4>
+
+<div class="cmdhead">deck toggle [--repo REPO] [--session SESSION] &lt;subcomando&gt;</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--repo REPO</code></td><td>Força o contexto de repositório. Existe porque a camada <code>repos:</code> é real: o valor efetivo de um toggle pode ser diferente conforme o repositório em que você está.</td></tr>
+  <tr><td><code>--session SESSION</code></td><td>O id de sessão que identifica o arquivo de estado da camada de tarefa (<code>.deck/state/toggles-&lt;session&gt;.yaml</code>). Existe para endereçar a postura de uma tarefa que não é a sua sessão atual.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck toggle list [--stage {plan,implement,verify,deliver}] [--group GROUP] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--stage</code></td><td>Um toggle declara em que estágios do trabalho ele importa. Filtrar por estágio é o que evita apresentar a alguém, no planejamento, uma decisão que só faz sentido na verificação.</td></tr>
+  <tr><td><code>--group GROUP</code></td><td>Filtra por grupo do catálogo: <code>quality</code>, <code>build</code>, <code>security</code>, <code>delivery</code>, <code>docs</code>, <code>agent</code>.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina, carregando também a frase do <code>--why</code> como <code>reason</code> — para que um consumidor não precise chamar <code>explain</code> uma vez por toggle.</td></tr>
+</tbody></table></div>
+<pre><code><span class="c">$ deck toggle list --stage plan</span>
+-- Quality and verification
+    gate_level             deploy         catalog default (core)
+    unit_tests             opportunistic  catalog default (core)
+  ? api_compat             ask            catalog default (pack)
+
+-- Delivery
+    plan_approval          always         catalog default (core)
+  ? requirement_link       ask            catalog default (core)
+
+  ? = will be asked when it matters</code></pre>
+<p class="measured">Saída real de <code>./docs/tour.sh</code>, recortada. O <code>?</code> não é um valor faltando: é uma pergunta esperando o momento certo.</p>
+
+<div class="cmdhead">deck toggle get &lt;id&gt;</div>
+<p>O valor efetivo de um toggle, e só isso. É a forma que um script ou um gate usa: <code>deck toggle get gate_level</code>.</p>
+
+<div class="cmdhead">deck toggle explain &lt;id&gt;</div>
+<p>
+  Significado, valor efetivo, de qual camada ele veio, risco, estágios, as duas
+  frases de raciocínio, o impacto de cada valor, e todas as camadas da mais forte
+  para a mais fraca. É o comando para quando alguém pergunta “por que estamos
+  fazendo assim?”.
+</p>
+<pre><code><span class="c">$ deck toggle explain target</span>
+target — Deployment target
+  Which host from the allowlist receives the deployment.
+
+  effective  : bancada.example.com
+  source     : workspace
+  risk       : high
+  depends on : {'gate_level': ['deploy', 'behavior']} → satisfied
+
+  why this value was chosen (workspace):
+    a única bancada declarada
+
+  layers (strongest first):
+    bancada.example.com   workspace   (why recorded)
+    ask                   catalog default (core)</code></pre>
+
+<div class="cmdhead">deck toggle set &lt;id&gt; &lt;value&gt; [--at task|workspace|&lt;scope&gt;] [--why REASON]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--at</code></td><td>Em qual camada gravar. As opções são <code>task</code>, <code>workspace</code> ou o nome de um scope — as camadas nas quais o deck escreve arquivos. Existe porque uma decisão <em>tem</em> camadas: “só nesta tarefa” e “neste workspace, para sempre” são duas afirmações diferentes e precisam ir para arquivos diferentes. Sem <code>--at</code>, a gravação é na camada de tarefa, isto é, só nesta sessão.</td></tr>
+  <tr><td><code>--why REASON</code></td><td>Por que <em>este</em> valor, aqui. Gravado ao lado dele, no mesmo arquivo. Definir sem <code>--why</code> apaga a razão anterior, e o deck diz que apagou.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck toggle profile [name] [--at task|workspace|&lt;scope&gt;]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>name</code></td><td>Omitido: mostra o perfil em vigor. Informado: aplica aquele perfil.</td></tr>
+  <tr><td><code>--at</code></td><td>Em qual camada gravar a escolha de perfil, pelo mesmo motivo de <code>toggle set</code>.</td></tr>
+</tbody></table></div>
+<p>
+  Um <strong>perfil</strong> move a postura inteira numa frase — perguntar mais
+  e verificar até o fim para quem é novo, pegar o caminho curto num hotfix — em
+  vez de discutir isso por tarefa. O núcleo traz cinco:
+  <code>standard</code>, <code>guided</code>, <code>autonomous</code>,
+  <code>hotfix</code> e <code>offline</code>.
+</p>
+
+<div class="cmdhead">deck toggle ask-plan --stage {plan,implement,verify,deliver} [--files [FILES ...]]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--stage</code></td><td>Obrigatório. Quais perguntas ainda pendentes pertencem a este momento do trabalho.</td></tr>
+  <tr><td><code>--files [FILES ...]</code></td><td>Os arquivos que estão sendo tocados, para filtrar pelo <code>applies_to</code> do toggle. Uma pergunta sobre contrato de API não deve aparecer numa mudança que não toca em nenhum schema.</td></tr>
+</tbody></table></div>
+<p>Emite as perguntas pendentes já em formato de pergunta pronta — cabeçalho, opções e descrições — para o Claude Code desenhar a caixa. O deck fornece o texto; o runtime desenha.</p>
+<pre><code><span class="c">$ deck toggle ask-plan --stage plan --files services/api-schema/openapi.yaml</span>
+
+  May this change alter the published API contract?   [high risk]
+    Additive only      Clients in the field keep working.
+    May break          Needs a migration note and a version bump.</code></pre>
+
+<div class="cmdhead">deck toggle validate [--strict]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--strict</code></td><td>Avisos também reprovam. É o modo que a CI usa: um catálogo que só avisa é um catálogo que passa.</td></tr>
+</tbody></table></div>
+<p>
+  Confere o catálogo, os perfis e as escolhas gravadas. Entre outras coisas, ele
+  recusa um catálogo em que um toggle do grupo <code>security</code> tenha
+  padrão <code>ask</code>: política de segurança se decide de antemão, não se
+  negocia no meio da tarefa com um agente com pressa.
+</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="contexto"><span class="num">9.</span>O contexto — mount<a class="anchor" href="#contexto">#</a></h2>
+
+<p>
+  <strong>Mount</strong> é colocar os artefatos certos nos diretórios certos
+  para um pedaço de trabalho, e retirá-los depois. O deck não inventa um
+  carregador de contexto: ele escreve nas superfícies que o Claude Code já lê,
+  na seguinte ordem de preferência.
+</p>
+
+<pre><code>   pack (fora do repositório)                repositório (de outra pessoa)
+   ───────────────────────                   ───────────────────────────
+   config/mount.yaml          ──plugin──►    .claude/settings.local.json
+   rules/api-contract.md      ──rule────►    .claude/rules/deck-api-contract.md
+   (gerado para esta tarefa)  ──cópia───►    CLAUDE.local.md
+
+                          manifesto ──► .deck/mounts/&lt;task&gt;.json
+                          exclusões ──► .git/info/exclude   (nunca .gitignore)</code></pre>
+
+<h3 id="duas-garantias">Duas garantias</h3>
+<p>
+  <strong>Ele só remove o que colocou.</strong> Cada entrada carrega um hash.
+  Uma regra que alguém editou, um arquivo de settings onde outra pessoa
+  acrescentou um plugin, um briefing que foi estendido — cada um é reportado e
+  deixado em paz.
+</p>
+<p>
+  <strong>Ele não suja o <code>git status</code>.</strong> As exclusões são
+  locais, em <code>.git/info/exclude</code>, nunca em <code>.gitignore</code> —
+  que é um arquivo versionado do repositório de outra pessoa. Nada que o deck
+  escreve pertence a um repositório de produto, e nada que ele coloca lá
+  sobrevive a um unmount.
+</p>
+
+<h3 id="mount-hold">Um mount é <em>segurado</em>, não possuído</h3>
+<p>
+  Quem monta toma o primeiro <em>hold</em>, e toda sessão de agente que começa
+  sob a mesma tarefa toma um também. Quando uma sessão termina, ela libera o seu
+  próprio hold, e o mount só é desfeito quando não sobra nenhum. Fechar um painel
+  não pode tirar as regras do painel que ainda está trabalhando na tarefa.
+</p>
+
+<h4>Os comandos do contexto</h4>
+
+<div class="cmdhead">deck mount [--task TASK] [--repos [REPOS ...]] [--no-expand] [--brief BRIEF] [--dry-run]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--task TASK</code></td><td>O id da tarefa. Sem ele, o id da sessão. Tudo que o deck grava por tarefa — o manifesto do mount, a evidência dos gates, o bundle, a janela de custo — é indexado por esse nome, e é por isso que ele aparece em quase todo comando adiante.</td></tr>
+  <tr><td><code>--repos [REPOS ...]</code></td><td>Os repositórios em jogo, separados por vírgula ou espaço.</td></tr>
+  <tr><td><code>--no-expand</code></td><td>Não seguir o grafo de impacto. Por padrão o mount <em>expande</em>: se você nomeia o schema, ele também coloca os packs do que o schema alcança e do que ele acopla, porque esses são repositórios que o trabalho talvez tenha de editar, e editá-los sem orientação é exatamente a falha que a expansão existe para evitar. Esta flag desliga isso quando você sabe que a mudança é local.</td></tr>
+  <tr><td><code>--brief BRIEF</code></td><td>O texto do <code>CLAUDE.local.md</code> da tarefa — o enunciado do trabalho. <code>-</code> lê da entrada padrão. Pode chegar <em>depois</em> do mount, porque normalmente é aí que se sabe: rodar de novo sobre uma tarefa já montada reescreve o enunciado e não toca em mais nada. Um enunciado que uma pessoa editou à mão nunca é sobrescrito, e montar sem enunciado nenhum diz isso — é permitido, e frequentemente certo no começo, mas não pode passar despercebido, ou nunca é acrescentado.</td></tr>
+  <tr><td><code>--dry-run</code></td><td>Mostra o que seria colocado, e coloca nada.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck unmount [--task TASK] [--session] [--all]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--task TASK</code></td><td>Desmontar uma tarefa específica. Sem ela, a da sessão atual.</td></tr>
+  <tr><td><code>--session</code></td><td>Tudo que <em>esta sessão</em> montou. É o que o hook <code>SessionEnd</code> chama, e é por isso que o argumento existe: um hook não sabe nomes de tarefa.</td></tr>
+  <tr><td><code>--all</code></td><td>Todo mount deste workspace. Para limpar depois de uma sessão que morreu sem executar o hook.</td></tr>
+</tbody></table></div>
+<pre><code><span class="c">$ deck unmount --task TOUR-1</span>
+  removed  .../services/api-schema/.claude/rules/deck-api-contract.md
+  removed  .../CLAUDE.local.md
+
+  2 removed · 0 left alone</code></pre>
+<p class="measured">Saída real de <code>./docs/tour.sh</code>. “<em>0 left alone</em>” é a contagem do que foi encontrado modificado e por isso preservado.</p>
+
+<div class="cmdhead">deck hold</div>
+<p>Registra esta sessão como seguradora do que está montado aqui. Sem opções. Você nunca digita este comando: o hook <code>SessionStart</code> do plugin o executa.</p>
+
+<div class="cmdhead">deck mounts [--json]</div>
+<p>O que está montado agora neste workspace. <code>deck doctor</code> reporta um mount que sobreviveu à sua sessão.</p>
+
+<h3 id="onde-pousa">Onde cada artefato pousa, e quando o Claude o lê</h3>
+<p>
+  O mount copia — nunca link simbólico. Um link em
+  <code>.claude/rules/</code> falha em silêncio: o mount reporta sucesso, o
+  <code>ls -l</code> parece certo, e a regra nunca chega ao agente.
+</p>
+<pre><code>   COLEÇÃO                              ÁRVORE DE TRABALHO
+
+   _workspaces/all/default/
+     CLAUDE.md          ──────────────► &lt;raiz&gt;/CLAUDE.local.md
+     rules/house.md     ──────────────► &lt;raiz&gt;/.claude/rules/deck-house.md
+     skills/rev/        ──────────────► &lt;raiz&gt;/.claude/skills/deck-rev/
+     agents/qa.md       ──────────────► &lt;raiz&gt;/.claude/agents/deck-qa.md
+
+   _repos/api/
+     rules/contract.md  ──────────────► &lt;raiz&gt;/api/.claude/rules/deck-contract.md</code></pre>
+<p>
+  A camada de workspace pousa <strong>uma vez, na raiz</strong>; o pack de um
+  repositório pousa naquele repositório e em nenhum irmão. O prefixo
+  <code>deck-</code> existe para o <code>.git/info/exclude</code> poder nomear
+  os arquivos do deck sem reivindicar um diretório que o repositório também usa.
+</p>
+<div class="measured">
+  <span class="label">Medido, não suposto</span>
+  <p>
+    Que o Claude Code encontra os quatro no nível do projeto foi medido: um
+    diretório com uma skill, um agente e uma regra <code>paths:</code>, cada um
+    carregando uma palavra que nada mais na sessão poderia fornecer, posto a uma
+    sessão aberta ali.
+  </p>
+<pre><code>   SKILL:     sim    .claude/skills/&lt;nome&gt;/SKILL.md, na listagem de skills
+   AGENT:     sim    .claude/agents/&lt;nome&gt;.md, como tipo do Agent
+   CLAUDE_MD: sim    CLAUDE.local.md na raiz, nas instruções
+   RULE:      não    .claude/rules/&lt;nome&gt;.md — e então SIM, depois que a
+                     sessão leu um arquivo que o `paths:` dela casa</code></pre>
+  <p>
+    A última linha é o mecanismo, não uma falha: uma regra carrega quando algo
+    que ela descreve é lido. Ela também teve que ser perguntada duas vezes —
+    um <em>não</em> isolado se lê exatamente como uma regra que nunca chega.
+  </p>
+  <p>
+    <strong>Consequência prática:</strong> o mount vem <em>antes</em> de abrir a
+    sessão. Skills, agents e o <code>CLAUDE.local.md</code> são lidos no
+    lançamento; só as regras toleram chegar depois.
+  </p>
+</div>
+
+
+<!-- ==================================================================== -->
+<h3 id="ciclo">O ciclo inteiro, e por onde o conhecimento volta</h3>
+<p>
+  O mount leva conhecimento para fora da coleção. O <code>deck save</code> é a
+  volta, e sem ele o que a IA aprendeu morre com o diretório de trabalho.
+</p>
+<pre><code>        ┌──────────────────────────────────────────────────┐
+        │  COLEÇÃO  (xyz-ai-packs/packs)  — versionada      │
+        └──────────────────────────────────────────────────┘
+              │                                    ▲
+              │ 1. deck mount                      │ 3. deck save
+              │    --task X --repos api            │    --task X
+              │    --brief "..."                   │
+              ▼                                    │
+        ┌──────────────────────────────────────────────────┐
+        │  ÁRVORE DE TRABALHO  — .claude/, CLAUDE.local.md │
+        │                                                  │
+        │        2. a sessão Claude trabalha aqui          │
+        │           lê as regras · corrige uma             │
+        │           escreve uma nova                       │
+        └──────────────────────────────────────────────────┘
+              │
+              │ 4. deck unmount --task X     (a árvore volta ao que era)
+              ▼
+        ┌──────────────────────────────────────────────────┐
+        │  5. você revisa o diff na coleção e commita      │
+        │     — o único momento em que vira do time        │
+        └──────────────────────────────────────────────────┘</code></pre>
+
+<h4>1 · <code>deck mount</code> — antes de abrir a sessão</h4>
+<pre class="flags"><code>--task &lt;id&gt;        sob que id tudo é registrado. Sem ele, o id da sessão —
+                   que dentro do tmux vem da JANELA, então dois painéis de
+                   uma janela são uma tarefa só.
+--repos a b c      o que está em jogo. Vírgula ou espaço. EXPANDE pelo grafo
+                   de impacto: montar o pack do schema e não o do servidor
+                   que ele força a mudar é como um agente acaba editando um
+                   repositório sobre o qual não sabe nada.
+--no-expand        só o que você nomeou.
+--brief "texto"    escreve o CLAUDE.local.md na raiz. Com `-`, lê do stdin.
+                   Numa tarefa já montada, substitui só o enunciado — porque
+                   o enunciado normalmente chega DEPOIS do mount.
+--dry-run          o plano, sem escrever nada.</code></pre>
+
+<h4>3 · <code>deck save</code> — o que a IA mudou volta</h4>
+<pre class="flags"><code>--task &lt;id&gt;        qual tarefa. Sem ele, o id da sessão.
+--dry-run          o que escreveria, escrevendo nada.</code></pre>
+<p>
+  Para onde volta não é adivinhação: o manifesto do mount gravou a origem de
+  cada artefato, então a edição volta para o arquivo de onde veio, na camada de
+  onde veio. Três situações, e a terceira é a mais conservadora:
+</p>
+<pre><code>   changed   a cópia não bate mais com a fonte     → escreve de volta na fonte
+   new       arquivo que ninguém colocou           → vai para o pack dono do
+                                                     lugar, SEM o prefixo deck-
+   gone      artefato colocado que sumiu           → REPORTA e não propaga</code></pre>
+<p>
+  Remover uma regra de um pack é uma edição ao pack — não algo a inferir de uma
+  cópia de trabalho que sumiu.
+</p>
+<div class="note">
+  <span class="label">Por que <code>save</code> é comando, e não parte do <code>unmount</code></span>
+  <p>
+    O hook <code>SessionEnd</code> desmonta. Um hook que também escrevesse numa
+    coleção versionada poria edições que ninguém revisou no
+    <code>git status</code> de alguém a cada painel fechado. Levar trabalho de
+    volta se pede.
+  </p>
+</div>
+
+<h4>4 · <code>deck unmount</code> — tira de volta exatamente o que colocou</h4>
+<pre class="flags"><code>--task &lt;id&gt;        aquela tarefa. É o que você digita.
+--session          tudo que ESTA sessão montou. É o que o hook SessionEnd
+                   chama — e ele solta apenas o hold dela: fechar um painel
+                   não arranca as regras do painel que ainda trabalha.
+--all              todo mount deste workspace. A vassoura.</code></pre>
+<p>
+  Ele <strong>nunca apaga o que alguém editou</strong>. Um arquivo que não bate
+  com o gravado fica, com a razão dita, e o relatório conta os dois lados:
+  <code>12 removed · 0 left alone</code>. Também desfaz o que não é arquivo —
+  a entrada em <code>settings.local.json</code>, o bloco no
+  <code>.git/info/exclude</code> — e poda os diretórios que ele mesmo criou,
+  só enquanto vazios.
+</p>
+<p>
+  Depois de um <code>save</code>, o que atravessou <em>é</em> retirado: deixou
+  de ser trabalho não salvo. Uma edição feita <em>depois</em> do save continua
+  protegida.
+</p>
+
+<h4>E se você esquecer o save?</h4>
+<p>
+  O <code>deck doctor</code> avisa. Ele vigia as duas direções da deriva:
+</p>
+<pre><code>$ deck doctor
+mounted artifacts
+  OK C2  1 artifact(s), this session
+  !! C2  stale: all/default changed house.md since it was placed
+         ↑ o PACK andou à frente das cópias — remonte
+  !! C2  unsaved: 1 edited, 1 written here — nothing in the collection holds them yet
+         ↑ as CÓPIAS andaram à frente do pack — deck save --task C2</code></pre>
+
+<!-- ==================================================================== -->
+<h2 id="packs"><span class="num">10.</span>Os packs — onde o conhecimento da equipe mora<a class="anchor" href="#packs">#</a></h2>
+
+<p>
+  Um <strong>pack</strong> é um diretório versionado e revisado como qualquer
+  outro código. Ele é, ao mesmo tempo, um plugin do Claude Code: o mesmo
+  diretório carrega <code>skills/</code>, <code>agents/</code> e
+  <code>hooks/</code>, que o Claude Code lê diretamente, mais um
+  <code>config/</code> que só o deck lê.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Arquivo em <code>config/</code></th><th>O que ele responde</th></tr></thead>
+  <tbody>
+    <tr><td><code>detect.yaml</code></td><td>o que este workspace <em>é</em> — os marcadores que fazem este pack se aplicar, e opcionalmente o <code>scope:</code> a que ele pertence</td></tr>
+    <tr><td><code>toggles.yaml</code></td><td>as decisões deste domínio, com <code>rationale</code> e o impacto de cada valor</td></tr>
+    <tr><td><code>gates.yaml</code></td><td>a escada: quais degraus, quais comandos, e opcionalmente o que medir</td></tr>
+    <tr><td><code>mount.yaml</code></td><td>o que aterrissa num repositório, e onde</td></tr>
+    <tr><td><code>profiles.yaml</code></td><td>posturas nomeadas deste domínio</td></tr>
+  </tbody>
+</table></div>
+
+<p>
+  Mais <code>rules/</code> (invariantes, escopadas por <code>paths:</code>),
+  <code>skills/</code> (procedimentos com passos) e
+  <code>templates/workspace/workspace.yaml</code> — a forma do descriptor que a
+  equipe compartilha.
+</p>
+
+<h4>Os comandos dos packs</h4>
+
+<div class="cmdhead">deck pack new &lt;name&gt; [--dir DIR] [--description DESCRIPTION] [--from-workspace] [--scope NAME] [--force]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--dir DIR</code></td><td>Onde escrever. Padrão: <code>./packs/&lt;name&gt;</code>.</td></tr>
+  <tr><td><code>--description DESCRIPTION</code></td><td>A descrição que vai para o <code>plugin.json</code>, e que é o que faz o Claude Code decidir carregar o pack.</td></tr>
+  <tr><td><code>--from-workspace</code></td><td>Semeia os marcadores de detecção e o template de descriptor a partir <em>deste</em> workspace. É como a forma de um workspace que funciona vira a forma que a próxima pessoa recebe.</td></tr>
+  <tr><td><code>--scope NAME</code></td><td>Amarra o pack a uma iniciativa: ele carrega só sob <code>deck --scope NAME</code> e em nenhum outro lugar. Existe porque uma iniciativa tem conhecimento próprio que não deve pesar no contexto de quem não está nela.</td></tr>
+  <tr><td><code>--force</code></td><td>Sobrescreve arquivos existentes.</td></tr>
+</tbody></table></div>
+<p>Cria o esqueleto inteiro com todos os comentários intactos — eles explicam o que vai em cada arquivo e por quê, e são a documentação de referência de fato.</p>
+
+<div class="cmdhead">deck pack review [--json]</div>
+<p>
+  O que cada pack custa, e o que parou de merecer esse custo. Ele cruza o que o
+  pack declara com a evidência que este workspace guardou: quantas vezes cada
+  gate rodou, quantas vezes pegou alguma coisa, quantas vezes foi pulado. Um
+  gate que roda sempre e nunca pega nada é um custo sem retorno; uma regra que
+  nenhum arquivo casa é contexto que nunca chega.
+</p>
+<pre><code><span class="c">$ deck pack review</span>
+gate history, from the evidence this workspace kept
+  deploy-remoto    ran   3  caught   3  skipped   2
+  build            ran   2  caught   2  skipped   0
+  lint             ran   3  caught   0  skipped   0</code></pre>
+
+<div class="cmdhead">deck pack list [--json]</div>
+<p>Os packs em jogo e o que cada um contribui — toggles, gates, regras.</p>
+
+<div class="cmdhead">deck pack sources [--vendored] [--into INTO]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--vendored</code></td><td>Em vez das fontes conhecidas, o que <em>já está</em> dentro deste pack, com a proveniência de cada arquivo.</td></tr>
+  <tr><td><code>--into INTO</code></td><td>Qual diretório de pack olhar. Padrão: o atual.</td></tr>
+</tbody></table></div>
+<p>Sem flags, lista fontes conhecidas de skills e agents. O texto de cada uma diz também <em>quando não vendorizar</em> — uma metodologia que você vendorizou é uma metodologia que parou de receber as correções do autor.</p>
+
+<div class="cmdhead">deck pack add &lt;source&gt; [--into INTO] [--skills [...]] [--agents [...]] [--all] [--with-hooks] [--ref REF] [--force] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>source</code></td><td><code>owner/repo</code>, uma URL git, ou um nome de <code>deck pack sources</code>.</td></tr>
+  <tr><td><code>--into INTO</code></td><td>O diretório de pack de destino. Padrão: o atual.</td></tr>
+  <tr><td><code>--skills [SKILLS ...]</code></td><td>Quais skills trazer.</td></tr>
+  <tr><td><code>--agents [AGENTS ...]</code></td><td>Quais agents trazer.</td></tr>
+  <tr><td><code>--all</code></td><td>Trazer todos os skills e agents.</td></tr>
+  <tr><td><code>--with-hooks</code></td><td>Trazer também os <code>hooks/</code>. Precisa ser pedido explicitamente <strong>porque um hook é um comando de shell que roda na sua máquina</strong>. Nunca é trazido por omissão.</td></tr>
+  <tr><td><code>--ref REF</code></td><td>Branch ou tag da origem. Faz parte da proveniência registrada.</td></tr>
+  <tr><td><code>--force</code></td><td>Substitui o que já está lá.</td></tr>
+  <tr><td><code>--yes</code></td><td>Escrever, em vez de só listar o que seria trazido. Sem essa flag o comando é uma prévia.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck pack update [artifact] [--into INTO] [--check] [--force] [--timeout TIMEOUT] [--json] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>artifact</code></td><td>Um caminho vendorizado, ou um glob. Padrão: todos.</td></tr>
+  <tr><td><code>--into INTO</code></td><td>O diretório de pack. Padrão: o atual.</td></tr>
+  <tr><td><code>--check</code></td><td>Sai com código diferente de zero se alguma coisa mudou na origem. É o modo pensado para virar um gate: assim “o que vendorizamos está desatualizado” deixa de ser algo que alguém precisa lembrar de conferir.</td></tr>
+  <tr><td><code>--force</code></td><td>Toma a cópia da origem mesmo por cima de edições locais.</td></tr>
+  <tr><td><code>--timeout TIMEOUT</code></td><td>Segundos permitidos por clone. Existe porque a origem é a rede.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+  <tr><td><code>--yes</code></td><td>Aplicar as atualizações, em vez de apenas reportá-las.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck pack validate [dir]</div>
+<p>Confere se um pack se sustenta, e reporta como aviso o que está faltando ou malformado — por exemplo um <code>.claude-plugin/plugin.json</code> ausente, que faria o Claude Code não carregar o pack como plugin. Padrão: o diretório atual. A redação do catálogo é conferida separadamente, por <code>deck toggle validate --strict</code>.</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="prova"><span class="num">11.</span>A prova — a escada de gates<a class="anchor" href="#prova">#</a></h2>
+
+<p>
+  Um <strong>gate</strong> é um comando que passa ou falha, num degrau da
+  escada. A escada do núcleo tem quatro degraus, e um pack pode inserir os seus
+  estendendo o toggle <code>gate_level</code> — não editando o motor.
+</p>
+
+<pre><code>   gate_level:  static ──► contract ──► build ──► deploy ──► behavior
+                                ▲
+                                └── um pack inseriu este degrau estendendo o
+                                    toggle gate_level, não o motor
+
+   cada gate declara:  from_level · per_repo ou once · only_repos · when · timeout
+                       · measures  (opcional: um número a extrair da saída)
+   cada resultado é:   passed · failed · could-not-run · not-applicable
+                       └─ os dois últimos sempre carregam o motivo</code></pre>
+
+<h3 id="degraus">Os quatro degraus, e o que cada um acrescenta</h3>
+<p>
+  Cada degrau <strong>inclui</strong> os anteriores — a escada é cumulativa, não
+  uma escolha entre alternativas. Estas quatro linhas não são invenção desta
+  página: são o campo <code>impact:</code> do toggle no catálogo do núcleo, e
+  você as lê sem abrir arquivo nenhum com
+  <code>deck toggle explain gate_level</code>.
+</p>
+<div class="scroll"><table>
+  <thead><tr><th>Degrau</th><th>Acrescenta</th><th>Quando é a resposta certa</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>static</code></td>
+      <td>Lint e checagens estáticas, e nada mais.</td>
+      <td>Uma mudança que <em>comprovadamente</em> não altera comportamento — uma correção de documento, um comentário.</td>
+    </tr>
+    <tr>
+      <td><code>build</code></td>
+      <td>Compila e empacota os artefatos afetados, sem tocar em nada rodando.</td>
+      <td>O trabalho do dia a dia: o código muda, mas nada precisa ser instalado para você acreditar nele.</td>
+    </tr>
+    <tr>
+      <td><code>deploy</code></td>
+      <td>Instala onde aquilo roda, e confirma que subiu. <strong>Nenhuma asserção funcional.</strong></td>
+      <td>O padrão. Prova que o artefato existe, instala e não morre ao subir — três coisas que um build sozinho não prova.</td>
+    </tr>
+    <tr>
+      <td><code>behavior</code></td>
+      <td>Asserções contra o sistema rodando.</td>
+      <td>Uma mudança num contrato publicado. É o único degrau em que “funciona” é uma medição, e não uma inferência.</td>
+    </tr>
+  </tbody>
+</table></div>
+<div class="note">
+  <span class="label"><code>contract</code> não é do núcleo</span>
+  <p>
+    O diagrama acima mostra cinco degraus e o núcleo declara quatro:
+    <code>values: [static, build, deploy, behavior]</code>. O
+    <code>contract</code> está ali como <em>exemplo</em> de um degrau que um pack
+    inseriu — a <code>rationale</code> do toggle diz “<em>packs may insert
+    intermediate rungs</em>”, e é assim que uma equipe cujo produto tem um
+    contrato publicado ganha um degrau entre o lint e o build sem que o motor
+    saiba o que é um contrato.
+  </p>
+  <p>
+    Num workspace sem pack de domínio,
+    <code>deck toggle explain gate_level</code> lista quatro.
+  </p>
+</div>
+<p>
+  Baixar o degrau é permitido e <strong>é sempre visível</strong>: o relatório
+  sempre diz até onde chegou, e a decisão fica no registro em vez de virar um
+  silêncio. É a diferença entre “verificamos até o build, de propósito” e
+  “achamos que estava verificado”.
+</p>
+
+<h3 id="tres-propriedades">Três propriedades foram escolhidas no lugar de funcionalidades</h3>
+<ol>
+  <li><strong>Um gate que não rodou nunca é reportado como tendo passado.</strong></li>
+  <li><strong>Um comando com uma variável não resolvida não roda.</strong></li>
+  <li><strong>Toda execução deixa evidência em disco</strong>, passando ou falhando.</li>
+</ol>
+
+<p>Isso não é uma promessa em prosa. É o que a saída mostra:</p>
+<pre><code><span class="c">$ deck gate run --task T-2 --level build; echo $?</span>
+task T-2 · level build · 3 repositories
+
+  <span class="ok">ok</span>   lint         schema                     0.0s
+  <span class="ok">ok</span>   lint         gen                        0.0s
+  <span class="ok">ok</span>   lint         runtime                    0.0s
+  <span class="wa">??</span>   build        schema                     unresolved: ${repo.build_target}
+  <span class="wa">??</span>   build        gen                        unresolved: ${repo.build_target}
+  <span class="wa">??</span>   build        runtime                    unresolved: ${repo.build_target}
+  <span class="c">--</span>   deploy-remoto gate_level is `build`; this gate starts at `deploy`
+
+  1 gate(s) passed in 6 run(s) · 1 could not run · 1 not applicable
+  evidence: .deck/gates/T-2.json
+
+  A gate that did not pass is never reported as passed. Fix it, or lower
+  `gate_level` deliberately — the report will say which rung was reached.
+1</code></pre>
+<p class="measured">
+  Saída real de um workspace sintético. Três coisas aconteceram e as três estão
+  na tela: três execuções passaram, três não puderam rodar (e o motivo é a
+  variável exata que faltou), e uma não se aplica (e o motivo é o degrau). O
+  código de saída é 1.
+</p>
+
+<p>E quando não há gate nenhum declarado, o deck se recusa a reportar sucesso:</p>
+<pre><code><span class="c">$ deck gate run --task T-1; echo $?</span>
+deck: no gate is declared, so nothing was verified.
+Gates come from a pack's config/gates.yaml — check `deck packs`
+resolves the pack you expect.
+1</code></pre>
+<p class="measured">
+  Saída real. Isso já foi diferente: a CI do próprio deck imprimia
+  <code>0 gate(s) passed</code> e saía com 0 — um checkmark verde sobre nada.
+</p>
+
+<h3 id="allowlist">A allowlist de máquinas</h3>
+<p>
+  Um agente com acesso ao shell alcança qualquer host que um comando nomeie.
+  O bloco <code>targets:</code> do descriptor é uma allowlist, e o toggle
+  <code>target</code> só aceita um valor que esteja nela:
+</p>
+<pre><code><span class="c">$ deck gate run --task T-3 --level deploy; echo $?</span>
+deck: target `fora-da-lista` is not in the allowlist. Declare it under
+`targets:` in the descriptor, or pick one that is.
+1</code></pre>
+<p class="measured">Saída real. Leia <a href="#limites">§19</a> para o que essa allowlist <em>não</em> cobre — a diferença importa.</p>
+
+<h4>Os comandos da prova</h4>
+
+<div class="cmdhead">deck gate list [--repos [REPOS ...]] [--level LEVEL] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--repos [REPOS ...]</code></td><td>Só sobre estes repositórios.</td></tr>
+  <tr><td><code>--level LEVEL</code></td><td>Sobrescreve <code>gate_level</code> só para esta listagem. Existe para responder “o que rodaria se eu subisse até <code>deploy</code>?” sem mudar a postura gravada.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+</tbody></table></div>
+<p>Quais gates se aplicam a esta mudança, e por quê. Ele imprime também os que <em>não</em> se aplicam, com o motivo — porque a lista dos que ficaram de fora é metade da resposta.</p>
+
+<div class="cmdhead">deck gate run [--task TASK] [--repos [REPOS ...]] [--level LEVEL] [--only [ONLY ...]] [--keep-going] [--dry-run]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--task TASK</code></td><td>O nome sob o qual a evidência é gravada. Sem ele, o id da sessão.</td></tr>
+  <tr><td><code>--repos [REPOS ...]</code></td><td>Restringe a execução a estes repositórios.</td></tr>
+  <tr><td><code>--level LEVEL</code></td><td>Sobrescreve <code>gate_level</code> para esta execução. Baixar deliberadamente é permitido — o relatório vai dizer qual degrau foi alcançado, que é a coisa toda.</td></tr>
+  <tr><td><code>--only [ONLY ...]</code></td><td>Rodar apenas estes gates, pelo id. Existe porque uma escada tem degraus e alguém quer reexecutar um deles depois de um conserto, sem subir a escada inteira. <strong>Cuidado:</strong> hoje <code>--only</code> <em>substitui</em> a evidência da tarefa em vez de acrescentar a ela — registrado na <a href="https://github.com/devfilipe/deck/issues/64">issue #64</a>.</td></tr>
+  <tr><td><code>--keep-going</code></td><td>Continuar depois de uma falha. Por padrão a escada para no primeiro gate que falha, e os degraus acima são reportados como <em>not attempted</em>, com esse motivo. Esta flag existe para quando você quer o panorama inteiro de uma vez em vez do primeiro problema.</td></tr>
+  <tr><td><code>--dry-run</code></td><td>Resolve os comandos e não executa nenhum. É como você vê o comando exato, já com as variáveis substituídas, antes de deixá-lo tocar uma máquina.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck gate report [--task TASK] [--json]</div>
+<p>
+  Lê de volta a evidência de uma tarefa, depois — possivelmente muito depois, e
+  numa outra sessão. É a diferença entre “passou” como afirmação e “passou” como
+  registro: os logs de cada execução ficam em
+  <code>.deck/gates/logs/&lt;task&gt;/</code>.
+</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="tendencia"><span class="num">12.</span>A tendência — o que o gate mediu<a class="anchor" href="#tendencia">#</a></h2>
+
+<p>
+  Um gate é um limiar, e um limiar tem um ponto cego: tudo que está dentro dele
+  parece igual. Cobertura escorregando de 86% para 81% sob um piso de 80% passa
+  em toda execução, e a execução que finalmente falha é a de <em>depois</em> que
+  a queda terminou.
+</p>
+
+<pre><code>   o gate              a série
+   ─────────           ──────────────────────────────────────────────
+   passa / falha  +    86.1 → 84.0 → 82.7 → 81.2  em quatro execuções
+   contra um           todas passaram; esse é o achado
+   número que          └─ um bundle carrega isso como uma ressalva, nunca
+   alguém escolheu        como um bloqueio: uma tendência sobre a qual
+                          ninguém pôs um limite não pode virar um limite
+                          que ninguém escolheu</code></pre>
+
+<p>
+  Um gate declara <code>measures:</code> — um id, uma expressão regular, uma
+  unidade e, opcionalmente, qual direção é melhor. O motor aplica isso
+  <strong>aos bytes que o comando já imprimiu</strong>, nunca a uma segunda
+  execução, que poderia discordar da primeira. Um padrão que não casa com nada
+  <strong>não registra nada e diz isso</strong>: uma amostra faltando nunca é um
+  zero, porque um zero pareceria uma medição que alguém tomou.
+</p>
+<p>
+  Onde a série vive é uma decisão, não um padrão silencioso:
+  <code>metrics_store</code> vale <code>workspace</code>, <code>shared</code> ou
+  <code>off</code>, e <code>shared</code> sem um diretório declarado é recusado
+  em vez de escrito por máquina.
+</p>
+
+<h4>Os comandos da tendência</h4>
+
+<div class="cmdhead">deck metrics list [--json]</div>
+<p>Toda métrica, declarada ou já registrada, e a sua tendência. Uma métrica declarada e ainda sem amostra é listada assim mesmo, dizendo quando será medida.</p>
+<pre><code><span class="c">$ deck metrics list</span>
+store    workspace · .deck/metrics
+declared 1 measurement(s), by 1 gate(s)
+
+  cobertura.cobertura  (gen)         cobertura
+       one sample, 82.7 % on T-9 — a trend needs a second</code></pre>
+<p class="measured">Saída real de um workspace sintético. “<em>a trend needs a second</em>” é o deck se recusando a chamar uma amostra de tendência.</p>
+
+<div class="cmdhead">deck metrics show &lt;id&gt; [--repo REPO] [--limit LIMIT] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>id</code></td><td><code>&lt;gate&gt;.&lt;metric&gt;</code>, como <code>deck metrics list</code> imprime.</td></tr>
+  <tr><td><code>--repo REPO</code></td><td>Só a série tomada neste repositório. A mesma métrica em repositórios diferentes é uma série diferente, guardada num arquivo diferente — <code>&lt;gate&gt;.&lt;metric&gt;@&lt;repo&gt;.jsonl</code>.</td></tr>
+  <tr><td><code>--limit LIMIT</code></td><td>Quantas amostras mostrar. Padrão: 20.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+</tbody></table></div>
+<p>
+  As amostras por trás de uma tendência, cada uma com a tarefa e o degrau em que
+  foi tomada, mais o arquivo de onde vieram. Os arquivos são <em>append-only</em>:
+  um histórico que pode ser reescrito não é evidência.
+</p>
+<pre><code><span class="c">$ deck metrics show cobertura.cobertura</span>
+  when                  task             rung            value
+  2026-09-07T03:10:45   T-9              build            82.7
+
+  one sample, 82.7 % on T-9 — a trend needs a second
+  Nothing here failed anything. A gate reports a threshold; this reports a direction.</code></pre>
+
+
+<!-- ==================================================================== -->
+<h2 id="quadro"><span class="num">13.</span>O quadro — onde está o trabalho, e o que pode rodar junto<a class="anchor" href="#quadro">#</a></h2>
+
+<p>
+  Não existe protocolo de sincronização no deck, e não deveria existir. O
+  trabalho de uma equipe já vive num rastreador que é auditado, tem permissões e
+  sobrevive a qualquer laptop — então <strong>o rastreador <em>é</em> o estado
+  compartilhado</strong>, e o deck lê dele. Jira, GitLab, GitHub, Gerrit ou um
+  arquivo.
+</p>
+<p>
+  O que o deck acrescenta é a única coisa de que a coordenação precisa e que um
+  rastreador não impõe: <strong>a reivindicação</strong>.
+  <code>deck board claim</code> atribui uma tarefa e recusa uma que outra pessoa
+  já segura, porque dois agentes editando a mesma cadeia produzem um merge que
+  ninguém consegue revisar.
+</p>
+<pre><code><span class="c">$ deck board claim EX-2 "outra pessoa" --yes; echo $?</span>
+deck: EX-2 is already claimed by &lt;quem já segurava&gt;.
+  Two agents on one task produce a merge nobody can review.
+  Use --force only after talking to them.
+1</code></pre>
+<p class="measured">Saída real de um quadro em arquivo, num workspace sintético.</p>
+
+<h3 id="claim-lido-de-volta">Uma reivindicação vale o que o rastreador diz que ela vale</h3>
+<p>
+  O GitHub responde <code>201</code> a uma atribuição para um login que ele está
+  prestes a descartar: o status diz que a requisição estava bem formada e só o
+  corpo diz que ninguém foi atribuído. Foi assim que <code>deck board claim</code>
+  passou a reportar uma atribuição que nunca aconteceu. A escrita agora é
+  <strong>lida de volta</strong>: cada backend reporta o assignee que a resposta
+  diz ter sido <em>gravado</em>, um nome que o rastreador descartou vira um erro
+  que o nomeia, e uma resposta que não presta contas de nada é reportada como
+  isso — não presumida como sucesso.
+</p>
+
+<h3 id="agrupamento">Agrupamento: o que pode rodar ao mesmo tempo</h3>
+<pre><code>   tarefas ──► fecho de edição por tarefa ──► grafo de conflito ──► grupos ordenados
+
+   conflito quando:  os fechos de edição se cruzam
+                     as duas precisam do mesmo target  (uma bancada é exclusiva)
+                     qualquer uma está marcada exclusive
+                     uma tarefa não nomeia repositório  (poderia tocar em tudo)
+
+   NÃO é conflito:   as duas apenas *alcançarem* um repositório downstream</code></pre>
+<p>
+  Aquela última linha é toda a sutileza, e ela veio de ter errado primeiro. A
+  regra inicial conflitava por <em>alcance</em>, e num quadro de cinco tarefas
+  produziu cinco grupos de uma: toda tarefa alcançava a suíte fim a fim, então
+  todo par colidia. Hoje o fecho de edição de uma tarefa é: os repositórios que
+  ela nomeia, mais tudo que esses alcançam por <code>impacts:</code>,
+  <strong>menos</strong> os que estão marcados <code>downstream: true</code> e
+  que ela não nomeia diretamente.
+</p>
+<p>
+  <code>couples:</code> deliberadamente <em>não</em> é lido aqui: um acoplamento
+  diz “revisite antes de entregar”, e uma revisita que não muda nada não colide
+  com nada.
+</p>
+<pre><code><span class="c">$ deck board plan</span>
+3 open task(s) · parallelism 2
+
+  group 1 (parallel)
+    EX-2                     ajustar o gerador
+      reaches: gen
+    EX-3                     revisar o runtime
+      reaches: runtime, schema, gen
+
+  group 2 (alone)
+    EX-4                     manutenção da bancada
+      reaches: (no repository named)
+
+  !! EX-3 reaches gen, which EX-2 edits. If EX-3 has to update it too, name it
+     in its `repos`.
+
+  This is a plan, not a run. deck does not orchestrate agents: Claude Code
+  already does that.</code></pre>
+<p class="measured">
+  Saída real de um workspace sintético. Note o aviso <code>!!</code>: o deck não
+  serializa por causa de um alcance, mas também não fica calado sobre ele.
+</p>
+
+<h4>Os comandos do quadro</h4>
+
+<div class="cmdhead">deck board list [--json]</div>
+<p>As tarefas que as fontes declaradas seguram, com os repositórios que cada uma nomeia. Uma leitura de rastreador segue as páginas do serviço em vez de pegar só a primeira, tem um teto (uma consulta que ninguém quis não deve segurar a CLI por centenas de requisições) e uma leitura que atingiu o teto é reportada como parcial ao lado das tarefas que trouxe.</p>
+
+<div class="cmdhead">deck board plan [--parallelism PARALLELISM] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--parallelism PARALLELISM</code></td><td>Sobrescreve o toggle <code>board_parallelism</code> — quantas tarefas cabem num grupo. Existe como flag porque o número certo depende da máquina de quem está rodando, e isso não é uma decisão da equipe.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina. É esta que o workflow <code>/deck:board</code> consome.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck board show &lt;id&gt; [--json]</div>
+<p>Uma tarefa: status, os repositórios que ela nomeia, o que ela alcança, e os critérios de aceite com quantos foram aceitos.</p>
+
+<div class="cmdhead">deck board claim &lt;id&gt; [who] [--force] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>who</code></td><td>Sob que nome. Sem ele: <code>$DECK_USER</code>, depois <code>git user.name</code> para um quadro em arquivo e <code>$USER</code> para um rastreador.</td></tr>
+  <tr><td><code>--force</code></td><td>Reivindicar uma que outra pessoa segura. O próprio texto de ajuda manda falar com ela primeiro.</td></tr>
+  <tr><td><code>--yes</code></td><td>Enviar a escrita sem perguntar. Escrever num rastreador aparece sob o nome de alguém e outras pessoas veem, então isso é governado pelo toggle <code>tracker_writes</code>, cujo padrão é perguntar. Uma máquina que só deve ler põe o toggle em <code>off</code> e não consegue escrever de jeito nenhum.</td></tr>
+</tbody></table></div>
+<div class="note">
+  <p>
+    <strong>Qual nome uma reivindicação carrega são duas perguntas, não uma.</strong>
+    Uma reivindicação num rastreador nomeia uma conta que se autentica naquele
+    rastreador — e um nome que o rastreador não aceita já é um erro, porque a
+    escrita é lida de volta. Um quadro em arquivo não tem esse leitor: ele é
+    comitado e publicado, e a única coisa que algum dia vê o nome é uma pessoa,
+    depois, num diff público. Por isso uma reivindicação escrita num arquivo é
+    gravada sob a identidade que aquele repositório publica — o
+    <code>user.name</code> do git, lido no diretório onde o arquivo do quadro
+    mora. Sem nada para ler, a reivindicação é recusada em vez de preenchida a
+    partir do login.
+  </p>
+</div>
+
+<div class="cmdhead">deck board ask-plan [--stage {all,plan,implement,verify,deliver}] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--stage</code></td><td>Qual momento do trabalho. <code>all</code> junta todos.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+</tbody></table></div>
+<p>Toda decisão que o quadro aberto está esperando, perguntada de uma vez só. É o oposto de interromper alguém uma vez por tarefa.</p>
+
+<div class="cmdhead">deck board template</div>
+<p>Um item de quadro bem formado, para copiar. Sem opções. Ele traz o <em>briefing</em> — <code>as_a</code>, <code>so_that</code> — que é o que um agente precisa para escolher entre duas maneiras plausíveis de fazer a mesma coisa, e os <code>acceptance</code>, que são a definição de pronto nas palavras de quem vai julgar.</p>
+
+<div class="cmdhead">deck board done &lt;id&gt; [--accept CRITERION] [--force] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--accept CRITERION</code></td><td>Um critério de aceite que esta mudança satisfaz, <strong>literalmente</strong>. Repetível. A comparação é por texto exato contra o que está no quadro.</td></tr>
+  <tr><td><code>--force</code></td><td>Fechar sem evidência, ou com um gate que falhou. Existe porque há trabalho que a escada não cobre, e recusar sem saída seria uma ferramenta que se contorna por fora.</td></tr>
+  <tr><td><code>--yes</code></td><td>Enviar a escrita sem perguntar, sob <code>tracker_writes</code>.</td></tr>
+</tbody></table></div>
+<pre><code><span class="c">$ deck board done EX-1; echo $?</span>
+deck: no gate evidence for EX-1 — nothing has been verified under that name.
+  Run it:      deck gate run --task EX-1
+  Or say so:   --force, for a task the ladder does not cover
+1</code></pre>
+<p class="measured">Saída real.</p>
+<div class="warn">
+  <span class="label">O que isto não garante</span>
+  <p>
+    Os critérios de aceite são <strong>texto livre</strong>. O deck confere que
+    eles foram <em>marcados como aceitos</em>, comparando a string exata — ele
+    não tem como conferir que foram <em>cumpridos</em>. E uma tarefa vinda de um
+    rastreador não carrega critério nenhum, então essa guarda simplesmente não
+    tem o que segurar (<a href="https://github.com/devfilipe/deck/issues/15">issue
+    #15</a>). O bundle diz isso em voz alta em vez de omitir.
+  </p>
+</div>
+
+<div class="cmdhead">deck board new &lt;title&gt; [--repos [...]] [--id ID] [--ext PROVIDER:ID] [--body BODY] [--to TO] [--exclusive] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--repos [REPOS ...]</code></td><td>Os repositórios que a tarefa edita. É o que alimenta o fecho de edição e, portanto, o agrupamento.</td></tr>
+  <tr><td><code>--id ID</code></td><td>O id, quando você quer escolher em vez de deixar o rastreador nomear.</td></tr>
+  <tr><td><code>--ext PROVIDER:ID</code></td><td>A identidade que este trabalho tem <em>em outro sistema</em> — por exemplo <code>jira:PROJ-412</code>. Existe porque uma peça de trabalho frequentemente vive em dois lugares, e um deles não é onde o deck lê.</td></tr>
+  <tr><td><code>--body BODY</code></td><td>O corpo da tarefa.</td></tr>
+  <tr><td><code>--to TO</code></td><td>Para qual tipo de fonte escrever, quando há mais de uma declarada.</td></tr>
+  <tr><td><code>--exclusive</code></td><td>Marca que ela precisa rodar sozinha. É a saída de emergência do agrupamento para o trabalho que o fecho de edição não descreve — manutenção de bancada, uma migração.</td></tr>
+  <tr><td><code>--yes</code></td><td>Enviar a escrita sem perguntar, sob <code>tracker_writes</code>.</td></tr>
+</tbody></table></div>
+<p>O que o deck reporta é a url ou a chave que o rastreador deu à tarefa nova — nunca uma palavra substituta para algo que ele não nomeou.</p>
+
+<div class="cmdhead">deck board whoami</div>
+<p>Para cada fonte, qual conta agiria, qual nome seria escrito, e de onde esse nome veio. Sem opções. Ele nunca imprime o token.</p>
+<pre><code><span class="c">$ deck board whoami</span>
+  type       host or repo             token     from            user
+  tasks      docs/board.yaml          n/a       git user.name   ...
+
+  A token is resolved at call time: $DECK_TOKEN_&lt;TYPE&gt;, then the
+  conventional variable, then ~/.netrc, then a `token_command` the
+  descriptor names. It is never read from the descriptor itself.</code></pre>
+
+<div class="cmdhead">deck board why &lt;a&gt; &lt;b&gt;</div>
+<p>Por que duas tarefas não podem rodar juntas — ou a confirmação de que podem. Existe porque um agrupamento sem explicação é uma decisão que ninguém consegue contestar.</p>
+<pre><code><span class="c">$ deck board why EX-1 EX-3</span>
+EX-1 and EX-3 must not run together: both would edit gen, schema
+
+<span class="c">$ deck board why EX-2 EX-3</span>
+EX-2 and EX-3 can run at the same time</code></pre>
+
+
+<!-- ==================================================================== -->
+<h2 id="entrega"><span class="num">14.</span>A entrega — o bundle de prontidão para merge<a class="anchor" href="#entrega">#</a></h2>
+
+<p>
+  <code>deck bundle</code> é a última coisa porque lê todas as outras. Ele monta
+  numa página o registro dos gates, a cadeia de impacto, as camadas de toggle
+  com a razão gravada ao lado de cada uma, as consultas e o git. Ele
+  <strong>deriva tudo e afirma nada</strong>: cada alegação nomeia o arquivo de
+  onde veio.
+</p>
+<p>O que ele diz, explicitamente:</p>
+<ul>
+  <li>quais repositórios a mudança alcançou, e quais deles terminaram <strong>sem commit nenhum</strong>;</li>
+  <li>qual degrau a escada alcançou, quais degraus ela nunca tentou, e quais <strong>não têm gate algum</strong> — um degrau ao qual a escada subiu e encontrou vazio é uma lacuna de cobertura, não um degrau alcançado;</li>
+  <li>e, separadamente, os degraus cujos gates foram todos pesados contra esta mudança e considerados não aplicáveis, com o motivo que cada um deu — porque no primeiro caso <em>ninguém declarou um gate</em> e no segundo <em>alguém declarou</em>, e isso é uma diferença;</li>
+  <li>quais decisões estavam em vigor, de onde veio cada valor, e por que quem escolheu escolheu — <em>ou que ninguém escreveu razão nenhuma</em>;</li>
+  <li>o que continua sem commit ou ainda colocado num diretório de trabalho;</li>
+  <li>e, para cada um desses, o arquivo de onde a alegação veio.</li>
+</ul>
+<p>
+  Ele sai com código diferente de zero enquanto qualquer coisa estiver no
+  caminho, para que um pack que queira prontidão de merge <em>imposta</em> possa
+  declarar um gate que o execute.
+</p>
+
+<pre><code><span class="c">$ deck bundle --task T-9</span>
+T-9
+
+  NOT READY — 2 things in the way
+
+  !! nothing has been verified under this name
+       deck gate run --task T-9
+  !! no commit is attributable to this task, so the change set is unknown
+       — not empty
+       commit naming T-9 in the message, or pass --since &lt;timestamp&gt;
+
+  .. no declared board holds T-9, so nothing says which repositories it names
+
+what was decided
+    target                 bancada.example.com   from workspace
+       why  a única bancada declarada
+
+where each claim comes from
+  the change set           git log, in each repository listed above
+  verification             nothing recorded under this task
+  decisions                deck toggle explain &lt;id&gt;
+  what it cost             deck cost --task T-9</code></pre>
+<p class="measured">
+  Saída real. Repare em “<em>the change set is unknown — not empty</em>”: o deck
+  se recusa a reportar ausência de commits como ausência de mudanças.
+</p>
+
+<div class="cmdhead">deck bundle [--task TASK] [--since SINCE] [--markdown] [--write] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--task TASK</code></td><td>A tarefa. Sem ela, o id da sessão.</td></tr>
+  <tr><td><code>--since SINCE</code></td><td>Atribuir commits por este timestamp em vez de pelo primeiro mount da tarefa. Existe por causa de uma limitação real: o bundle atribui um commit a uma tarefa exatamente quando a mensagem a cita, que é o que o toggle <code>requirement_link: required</code> já pede. Com esse toggle em <code>off</code>, a base passa a ser a janela do mount — todo commit feito num repositório alcançado enquanto a tarefa esteve montada, por quem quer que seja. O bundle diz qual das duas bases usou.</td></tr>
+  <tr><td><code>--markdown</code></td><td>Renderiza para um pull request em vez de para o terminal.</td></tr>
+  <tr><td><code>--write</code></td><td>Salva o markdown em <code>.deck/bundles/</code>. Esse arquivo é derivado do resto — reexecute em vez de editá-lo.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina, carregando também a razão de cada decisão como <code>reason</code>.</td></tr>
+</tbody></table></div>
+
+
+<!-- ==================================================================== -->
+<h2 id="conta"><span class="num">15.</span>A conta — quanto custou<a class="anchor" href="#conta">#</a></h2>
+
+<pre><code>   transcript (~/.claude/projects/&lt;project&gt;/&lt;session&gt;.jsonl)
+        │  uso por mensagem: input · output · cache write · cache read
+        │  deduplicado por id de mensagem — uma mensagem em streaming aparece duas vezes
+        ▼
+   tokens  ──── exato ─────────────────────────────► reportado como fato
+        │
+        └── × tabela de preços ── estimativa a preço de tabela ──► rotulada como estimativa
+                                       ▲
+   status line ── cost.total_cost_usd ──┘ mostrada ao lado, e sinalizada
+                  (o número do próprio Claude Code)  quando as duas divergem &gt;10%</code></pre>
+
+<p>
+  Os tokens são <strong>exatos</strong>, lidos do transcript da sessão. Os
+  dólares são uma <strong>estimativa</strong> a preço de tabela, e o relatório
+  diz que são. Onde o número do próprio Claude Code está disponível, o deck o
+  trata como autoritativo e mostra a sua estimativa ao lado.
+</p>
+<p>
+  A janela de uma tarefa vem do que o deck já registra: um mount a abre, uma
+  execução de gates a fecha. Nenhum dos dois existe para medir custo — que é
+  exatamente por que a medição é confiável.
+</p>
+
+<div class="cmdhead">deck cost [--task TASK] [--since SINCE] [--until UNTIL] [--session SESSION] [--all-sessions] [--any-project] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--task TASK</code></td><td>Usa a janela que um mount e uma execução de gates registraram. É a forma normal.</td></tr>
+  <tr><td><code>--since SINCE</code></td><td>Timestamp ISO de início, para uma janela que você define.</td></tr>
+  <tr><td><code>--until UNTIL</code></td><td>Timestamp ISO de fim.</td></tr>
+  <tr><td><code>--session SESSION</code></td><td>Um id de sessão. Sem ele, esta sessão.</td></tr>
+  <tr><td><code>--all-sessions</code></td><td>Todo transcript, não só o desta sessão. Uma tarefa pode atravessar sessões.</td></tr>
+  <tr><td><code>--any-project</code></td><td>Não restringir a este workspace. Existe por causa de uma armadilha real, descrita abaixo, e reporta também o que outros projetos gastaram — que quase nunca é o que você quer.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+</tbody></table></div>
+
+<div class="warn">
+  <p>
+    Os agentes de um workflow escrevem os seus transcripts sob o diretório de
+    projeto da sessão que os <strong>lançou</strong>, não do workspace em que
+    trabalharam. Rode um quadro de um workspace a partir de um terminal que está
+    em outro, e o custo aterrissa no segundo. O deck lê caminhos; ele não
+    enxerga intenção. Conduza a execução de dentro do workspace a que ela se
+    refere, ou passe <code>--any-project</code> e leia a janela você mesmo.
+  </p>
+</div>
+<p>
+  Quando não há transcript, o deck diz isso em vez de reportar zero:
+</p>
+<pre><code><span class="c">$ deck cost --task TOUR-1</span>
+deck: no session of this workspace has a transcript yet (~/.claude/projects/...)
+  Sessions opened elsewhere are not counted. Use --any-project to widen,
+  which reports what other projects spent and is almost never what you want.</code></pre>
+<p class="measured">Saída real de <code>./docs/tour.sh</code>. Uma janela vazia é a resposta honesta; um zero não seria.</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="perguntas"><span class="num">16.</span>As perguntas — consultas<a class="anchor" href="#perguntas">#</a></h2>
+
+<p>
+  Uma <strong>consulta</strong> é a quinta saída de <a href="#quatro-naturezas">§2</a>:
+  algo que não é fato, nem invariante, nem decisão, nem prova. Um agente escreve
+  a pergunta, continua trabalhando, e uma pessoa responde depois. A resposta
+  sobrevive à sessão que a levantou e é citada no bundle que um revisor lê.
+</p>
+<div class="note">
+  <p>
+    <strong>Nada espera por ela.</strong> O próprio deck diz isso ao registrar:
+    “diga no seu relatório o que você fez enquanto isso, e o que mudaria se a
+    resposta for para o outro lado”. Uma consulta é um registro, não um bloqueio.
+  </p>
+</div>
+
+<div class="cmdhead">deck ask new &lt;question&gt; [--task TASK] [--context CONTEXT] [--options OPTIONS] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>question</code></td><td>A pergunta, nas suas palavras.</td></tr>
+  <tr><td><code>--task TASK</code></td><td>A tarefa que a levantou, para que ela apareça no bundle daquela tarefa.</td></tr>
+  <tr><td><code>--context CONTEXT</code></td><td>O que uma pessoa precisa saber para responder. É a diferença entre uma pergunta respondível em dez segundos e uma que fica parada.</td></tr>
+  <tr><td><code>--options OPTIONS</code></td><td>Separadas por vírgula, quando a escolha já é estreita. Elas viram os valores padrão se a consulta depois virar um toggle.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck ask list [--resolved] [--all] [--json]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td>(sem flag)</td><td>O que está esperando uma pessoa.</td></tr>
+  <tr><td><code>--resolved</code></td><td>O que já foi respondido, com a resposta.</td></tr>
+  <tr><td><code>--all</code></td><td>As duas coisas.</td></tr>
+  <tr><td><code>--json</code></td><td>Saída para máquina.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck ask show &lt;id&gt; [--json]</div>
+<p>Uma consulta inteira: a pergunta, o contexto, as opções, quem perguntou e quando, e — se houver — a resposta, quem respondeu e quando.</p>
+
+<div class="cmdhead">deck ask resolve &lt;id&gt; &lt;answer&gt; [--who WHO]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--who WHO</code></td><td>Quem respondeu. Fica gravado junto e viaja tão longe quanto um <code>assignee:</code> viaja: a consulta sobrevive à sessão por projeto, é lida pela execução seguinte e é citada no bundle.</td></tr>
+</tbody></table></div>
+<p>Ao responder, o deck diz <em>o que aquilo provavelmente quer virar</em> — e diz também por que ainda não virou:</p>
+<pre><code><span class="c">$ deck ask resolve &lt;id&gt; "renovar o token no início do job"</span>
+  This answer is a transcript until someone writes it down.
+  It probably wants to become: toggle — it had named options, so it may be
+  a decision that recurs
+
+  Fold it:   deck ask fold &lt;id&gt; --as &lt;rule|toggle|gate&gt; --into &lt;pack&gt;
+  Until then the next run has to ask again.</code></pre>
+<p class="measured">Saída real.</p>
+
+<div class="cmdhead">deck ask fold &lt;id&gt; --as {rule,toggle,gate} --into INTO [...]</div>
+<p>
+  Escreve uma consulta respondida dentro de um pack, carregando a pergunta e a
+  resposta, para que o raciocínio sobreviva à sessão que o produziu.
+  <strong>Qual das três naturezas ela vira continua sendo julgamento de uma
+  pessoa</strong> — se uma resposta recorre não é algo que se saiba de uma única
+  ocorrência, e esse julgamento é a diferença entre conhecimento e transcrição.
+  O deck nunca dobra uma consulta por conta própria.
+</p>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--as {rule,toggle,gate}</code></td><td>Obrigatório. As três naturezas de <a href="#quatro-naturezas">§2</a> em que uma resposta pode se transformar. A quarta, <em>fato</em>, não aparece aqui porque um fato vai para o descriptor e não para um pack.</td></tr>
+  <tr><td><code>--into INTO</code></td><td>Obrigatório. O diretório do pack de que ela passa a fazer parte.</td></tr>
+  <tr><td><code>--title TITLE</code></td><td>Como chamá-la. Padrão: a própria pergunta.</td></tr>
+  <tr><td><code>--paths PATHS</code></td><td><em>rule:</em> um glob a que ela se aplica; repetível, e obrigatório. Obrigatório porque uma regra sem <code>paths:</code> custa contexto em toda leitura de arquivo do repositório inteiro.</td></tr>
+  <tr><td><code>--text TEXT</code></td><td><em>rule:</em> o texto da regra. Padrão: a resposta, literal.</td></tr>
+  <tr><td><code>--command COMMAND</code></td><td><em>gate:</em> o que uma máquina executa para conferir aquilo.</td></tr>
+  <tr><td><code>--from-level FROM_LEVEL</code></td><td><em>gate:</em> o degrau em que ele começa.</td></tr>
+  <tr><td><code>--gate-id GATE_ID</code></td><td><em>gate ou toggle:</em> o id. Padrão: derivado do título.</td></tr>
+  <tr><td><code>--values VALUES</code></td><td><em>toggle:</em> separados por vírgula. Padrão: as opções da consulta.</td></tr>
+  <tr><td><code>--group GROUP</code></td><td><em>toggle:</em> <code>quality</code>, <code>build</code>, <code>security</code>, <code>delivery</code>, <code>docs</code> ou <code>agent</code>.</td></tr>
+  <tr><td><code>--impact IMPACT</code></td><td><em>toggle:</em> <code>&lt;valor&gt;=&lt;o que escolher isso significa&gt;</code>, uma vez por valor. É a frase que faz um toggle ser respondível por quem não estava na conversa.</td></tr>
+  <tr><td><code>--default DEFAULT</code></td><td><em>toggle:</em> o valor escolhido. Padrão: o que a resposta nomeia.</td></tr>
+  <tr><td><code>--header HEADER</code></td><td><em>toggle:</em> 12 caracteres ou menos. O texto de ajuda diz que isso torna o toggle <em>askable</em>; a <a href="https://github.com/devfilipe/deck/issues/70">issue #70</a> registra que hoje não torna.</td></tr>
+  <tr><td><code>--again</code></td><td>Dobrar a mesma consulta uma segunda vez, num outro pack. Sem ela, uma consulta já dobrada é recusada.</td></tr>
+</tbody></table></div>
+<p>Uma regra dobrada sai assim, com a proveniência em comentários:</p>
+<pre><code>---
+paths: ["servicos/**"]
+---
+
+# renovação do token antes do job
+
+renovar o token no início do job
+
+&lt;!-- Folded from consultation 20260907-... --&gt;
+&lt;!-- Question: o refresh token expira antes do job noturno; renovar ou alongar? --&gt;
+&lt;!-- Answered 2026-09-07T03:10:22 by equipe de plataforma: ... --&gt;</code></pre>
+<p class="measured">Arquivo real gerado por <code>deck ask fold --as rule</code> num workspace sintético.</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="modelo"><span class="num">17.</span>Onde o modelo entra, e onde não entra<a class="anchor" href="#modelo">#</a></h2>
+
+<p>
+  A pergunta mais comum sobre o deck é se ele conduz um agente. Não conduz, e a
+  linha vale ser traçada com precisão, porque “uma ferramenta de IA” é
+  exatamente a descrição que deixa as pessoas sem saber o que instalaram.
+</p>
+
+<pre><code>    o que um parser deriva              o que só julgamento produz
+    ────────────────────────            ────────────────────────────
+    quais repositórios existem          quais repositórios uma mudança
+    o que um manifesto faz checkout       obriga você a tocar
+    qual é o comando de um gate         como redigir uma decisão para que
+    qual pack reivindica um nome          um colega consiga respondê-la
+    quanto uma sessão custou            o que o código deve ser
+
+    o deck computa isso.                Uma pessoa decide isso — ou, para
+    Determinístico, auditável,          os dois primeiros apenas, pede um
+    a mesma resposta duas vezes.        RASCUNHO a um modelo.
+                                        O terceiro nunca é do deck.</code></pre>
+
+<p>
+  O deck chama um modelo em <strong>exatamente um lugar no código-fonte</strong>,
+  <code>assist.py</code>, alcançado por exatamente três comandos. Não existe um
+  quarto. O deck nunca pede a um modelo que escreva o seu código, rode o seu
+  build, edite o seu descriptor ou decida qualquer coisa.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Comando</th><th>Rascunha</th><th>Por que um parser não consegue</th></tr></thead>
+  <tbody>
+    <tr><td><code>deck propose impacts</code></td><td>as arestas <code>impacts</code> e os pares <code>couples:</code></td><td>Um manifesto declara um <em>checkout</em>, nunca uma <em>propagação</em>. A dependência está em imports, código gerado e schemas publicados.</td></tr>
+    <tr><td><code>deck propose toggle</code></td><td>uma entrada de catálogo</td><td>Redigir uma decisão para que alguém a responda em dez segundos é escrita, não parsing.</td></tr>
+    <tr><td><code>deck propose pack</code></td><td>os gates, regras e toggles de um repositório, mais as perguntas que ele não soube responder</td><td>Quais comandos um projeto já roda é descobrível; quais das suas convenções nenhum comando confere, e o que quebra quando uma delas é atravessada, é julgamento sobre um código.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="quatro-restricoes">As quatro restrições sobre essa única chamada</h3>
+<ol>
+  <li>
+    <strong>Desligado por padrão.</strong> O toggle <code>ai_assist</code> vale
+    <code>off</code> (recusa), <code>ask</code> (recusa sem <code>--yes</code>)
+    ou <code>allow</code>. É um toggle, e não uma flag, deliberadamente: um
+    comando dedicado a ele seria o caso especial que mina o mecanismo do qual as
+    outras 26 decisões do catálogo dependem. Ele carrega
+    <code>askable: false</code> — é política, e política não é algo que um agente
+    apresenta a você no meio de uma tarefa.
+  </li>
+  <li>
+    <strong>Somente leitura, imposto pelo runtime.</strong> A execução recebe
+    Read, Grep e Glob, e nada mais. Sem Write, sem Edit, sem Bash. Um prompt é
+    uma sugestão; isto não é.
+  </li>
+  <li>
+    <strong>Com teto de custo.</strong> <code>--budget</code>, cujo padrão é
+    US$&nbsp;1.50. Um laço descontrolado não pode faturar em cima de você.
+  </li>
+  <li>
+    <strong>Escreve uma proposta, nunca uma edição.</strong> O resultado vai
+    para <code>.deck/proposals/</code>, nunca para o descriptor. Uma ferramenta
+    que reescreve em silêncio o arquivo que descreve como o seu sistema propaga
+    mudança é uma ferramenta que ninguém deveria instalar.
+  </li>
+</ol>
+
+<div class="stop">
+  <span class="label">Isto custa dinheiro de verdade</span>
+  <p>
+    <code>deck propose</code> faz uma chamada paga a um modelo. Toda execução
+    reporta quanto custou. <code>--show-prompt</code> mostra exatamente o que
+    seria perguntado e não custa nada — use antes. Proponha dois ou três
+    repositórios por vez: uma execução sobre uma dúzia é cara e mais difícil de
+    revisar, e revisar é o ponto.
+  </p>
+</div>
+
+<h3 id="rascunho-honesto">Um rascunho não pode transformar uma pergunta em decisão</h3>
+<p>
+  <code>deck propose pack</code> classifica o que encontra em gates, regras e
+  toggles. Existe um quarto desfecho, e deixá-lo de fora custou algo real: um
+  rascunho encontrou dois caminhos de código devolvendo códigos de status
+  diferentes para a mesma classe de recusa, escreveu nas próprias notas que não
+  sabia dizer se aquilo era intencional ou deriva, e arquivou como
+  <strong>toggle</strong>. Arquivado como toggle, aquilo se lê como “nós
+  escolhemos”, e a dúvida desapareceu no momento em que ela valia mais.
+</p>
+<p>
+  Por isso um rascunho de pack tem uma lista <code>questions</code> ao lado de
+  <code>toggles</code>, e <code>deck propose apply</code> registra cada entrada
+  como uma consulta. O toggle de um rascunho carrega um bloco
+  <code>defends</code>, uma linha por valor dizendo por que uma equipe escolheria
+  aquele — e <code>apply</code> <strong>recusa o rascunho inteiro</strong> quando
+  um toggle não defende todos os valores que nomeia, ou quando o mesmo achado
+  aparece como toggle e como algo que o rascunho não soube explicar.
+</p>
+
+<h4>Os comandos da proposta</h4>
+
+<div class="cmdhead">deck propose impacts [--repos [REPOS ...]] [--budget BUDGET] [--show-prompt] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--repos [REPOS ...]</code></td><td>Propor só para estes repositórios — mais barato, e mais fácil de revisar.</td></tr>
+  <tr><td><code>--budget BUDGET</code></td><td>Teto rígido de custo em USD. Padrão: 1.50.</td></tr>
+  <tr><td><code>--show-prompt</code></td><td>Imprime o que seria perguntado e para. Grátis.</td></tr>
+  <tr><td><code>--yes</code></td><td>Executar sem perguntar — o que <code>ai_assist: ask</code> exige.</td></tr>
+</tbody></table></div>
+<p>
+  O rascunho de impacts tem os dois tipos de aresta para escrever, e o que os
+  separa não é gosto: <strong>um acoplamento custa uma citação por direção</strong>,
+  em dois campos da proposta, porque ele não reivindica ordem e seria de outro
+  modo a resposta cômoda para todo par que o rascunhista não conseguiu decidir.
+  Evidência de um lado e palpite do outro é uma aresta comum mais uma nota
+  <code>unsure</code>, e o palpite volta para você. Um rascunho que nomeia o
+  mesmo par nas duas direções é aplicado como o acoplamento que é — enquanto as
+  mesmas duas arestas <code>impacts:</code> escritas à mão continuam sendo um
+  ciclo, porque alguém pode digitá-las e querer dizer aquilo.
+</p>
+
+<div class="cmdhead">deck propose toggle &lt;decision&gt; [--budget BUDGET] [--show-prompt] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>decision</code></td><td>A decisão, nas suas palavras.</td></tr>
+  <tr><td><code>--budget</code>, <code>--show-prompt</code>, <code>--yes</code></td><td>Iguais aos de <code>propose impacts</code>.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck propose pack &lt;repo&gt; [--no-neighbours] [--budget BUDGET] [--yes] [--show-prompt]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>repo</code></td><td>O repositório a ser lido.</td></tr>
+  <tr><td><code>--no-neighbours</code></td><td>Ler só este repositório, e não os que o grafo conecta a ele. Por padrão os vizinhos <em>são</em> lidos, nas duas direções — o que este repositório alcança e o que alcança este, e também o outro lado de um par <code>couples:</code> —, porque metade do que se quer saber sobre um repositório está escrita no vizinho. Um vizinho é evidência para o rascunho, nunca um assunto para o qual rascunhar; e um repositório não é vizinho de si mesmo. Esta flag existe para quando ler os vizinhos é caro ou desnecessário.</td></tr>
+  <tr><td><code>--budget BUDGET</code></td><td>Teto rígido em USD. Padrão: 1.50.</td></tr>
+  <tr><td><code>--yes</code></td><td>Permitir a chamada quando <code>ai_assist</code> está em <code>ask</code>.</td></tr>
+  <tr><td><code>--show-prompt</code></td><td>Imprime o que seria perguntado e para. Grátis.</td></tr>
+</tbody></table></div>
+
+<div class="cmdhead">deck propose apply &lt;file&gt; [--into INTO] [--confidence {high,medium,low}] [--yes]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>file</code></td><td>Um arquivo sob <code>.deck/proposals/</code>.</td></tr>
+  <tr><td><code>--into INTO</code></td><td>O diretório de pack em que uma proposta do tipo <code>pack</code> escreve.</td></tr>
+  <tr><td><code>--confidence {high,medium,low}</code></td><td>A confiança mínima a aceitar. Padrão: <code>medium</code>. Existe porque a proposta rotula cada achado, e um piso de confiança é como você aceita a parte sólida sem aceitar a parte incerta.</td></tr>
+  <tr><td><code>--yes</code></td><td>Escrever, em vez de só mostrar. Há uma inconsistência registrada aqui — <a href="https://github.com/devfilipe/deck/issues/2">issue #2</a>: <code>apply</code> escreve um pack sem <code>--yes</code> e só escreve impacts com ele.</td></tr>
+</tbody></table></div>
+<p>
+  Aplicar é um comando separado, com piso de confiança, executado por uma pessoa
+  que leu a proposta — inclusive a lista <code>unsure</code>, onde o modelo
+  registra o que não conseguiu verificar.
+</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="superficies"><span class="num">18.</span>Diagnóstico e superfícies<a class="anchor" href="#superficies">#</a></h2>
+
+<div class="cmdhead">deck doctor [--net]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--net</code></td><td>Também testa a alcançabilidade dos targets por SSH e lê cada quadro de rastreador. Separado porque toca a rede, e uma verificação de saúde que depende da rede não é a que você quer rodar cem vezes por dia.</td></tr>
+</tbody></table></div>
+<p>
+  A primeira coisa a chamar quando algo está estranho. <strong>Ele nunca
+  conserta nada sozinho</strong>, e todo problema que ele reporta vem com o
+  comando ou a edição que o resolve — uma mensagem que nomeia uma condição sem
+  um próximo passo está inacabada.
+</p>
+<pre><code><span class="c">$ deck doctor</span>
+workspace
+  OK root ...  ($DECK_ROOT)
+  OK descriptor present  4 repositories, 0 target(s)
+
+impact graph
+  OK references  every target exists in the descriptor
+  OK acyclic  topological order computable
+
+targets (allowlist)
+  !! none declared  gate_level = deploy needs one — deployment and behaviour
+                    gates are unavailable
+
+toggles
+  OK catalog  28 toggles, 5 profiles
+
+5 warning(s):
+  !! api-schema: no origin remote
+  ...
+  !! no target declared</code></pre>
+<p class="measured">
+  Saída real de <code>./docs/tour.sh</code>, recortada. “28 toggles” ali são as
+  27 do núcleo mais a que o pack do tour acrescenta.
+</p>
+<p>
+  <code>doctor</code> também reporta o caso de <em>auto-hospedagem</em>: quando
+  o <code>deck</code> em execução resolve para dentro do workspace que ele está
+  administrando. Um agente editando o motor muda o binário que está rodando,
+  incluindo o que rodaria os gates que pegariam a quebra — e uma edição pela
+  metade não falha alto, ela desabilita a coisa que teria avisado.
+</p>
+
+<div class="cmdhead">deck console [-c COMMAND]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>-c</code>, <code>--command COMMAND</code></td><td>Roda um comando e sai, em vez de abrir o REPL. É como um script usa o console sem uma sessão interativa.</td></tr>
+</tbody></table></div>
+<p>Um REPL do plano de controle. Aceita os mesmos comandos sem o prefixo <code>deck</code>.</p>
+
+<div class="cmdhead">deck ui [--width WIDTH] [--popup] [--no-agent] [--agent-cmd AGENT_CMD] [--session SESSION] [--detach] [--dry-run]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--width WIDTH</code></td><td>Largura do console, em %. Padrão: 40.</td></tr>
+  <tr><td><code>--popup</code></td><td>Um popup sobreposto, que deixa o layout intacto. Para uma consulta rápida sem reorganizar os painéis.</td></tr>
+  <tr><td><code>--no-agent</code></td><td>Abre só o console, sem o painel do agente.</td></tr>
+  <tr><td><code>--agent-cmd AGENT_CMD</code></td><td>O comando do painel esquerdo, quando não é o padrão.</td></tr>
+  <tr><td><code>--session SESSION</code></td><td>O nome da sessão tmux.</td></tr>
+  <tr><td><code>--detach</code></td><td>Cria a sessão sem se anexar a ela.</td></tr>
+  <tr><td><code>--dry-run</code></td><td>Imprime os comandos tmux e sai. Útil quando o layout não é o que você esperava e você quer ver o que seria executado.</td></tr>
+</tbody></table></div>
+<p>Precisa de <code>tmux</code>. É a única parte do deck que precisa.</p>
+
+<div class="cmdhead">deck statusline [--settings] [--demo] [--no-color]</div>
+<div class="scroll"><table class="flags"><tbody>
+  <tr><td><code>--settings</code></td><td>Imprime o trecho de configuração para colar no <code>.claude/settings.json</code>. Existe para que ligar isso não exija consultar documentação.</td></tr>
+  <tr><td><code>--demo</code></td><td>Renderiza com dados de sessão de exemplo, para você ver como fica antes de ligar.</td></tr>
+  <tr><td><code>--no-color</code></td><td>Sem sequências ANSI.</td></tr>
+</tbody></table></div>
+<p>Duas ou três linhas dentro da própria janela do Claude: qual workspace, qual perfil, até onde esta entrega verifica, e o que ainda está esperando ser perguntado.</p>
+
+
+<!-- ==================================================================== -->
+<h2 id="limites"><span class="num">19.</span>O que o deck impõe, e onde ficam suas fronteiras<a class="anchor" href="#limites">#</a></h2>
+
+<p>
+  Uma regra chega ao agente como texto no contexto, e um agente pode ignorá-la.
+  Isso vale para toda ferramenta que instrui um modelo, e não é o que separa uma
+  da outra. O que separa é <strong>o que é imposto por código</strong>, e essa
+  lista é curta e verificável:
+</p>
+<div class="scroll"><table>
+  <thead><tr><th>Imposto</th><th>Onde</th></tr></thead>
+  <tbody>
+    <tr><td>O toggle <code>target</code> só aceita um host declarado em <code>targets:</code></td><td>Recusado antes de o comando do gate ser construído, em <code>deck gate run</code></td></tr>
+    <tr><td>Um gate com uma variável não resolvida não roda</td><td>Reportado como <em>could not run</em>, com o nome da variável</td></tr>
+    <tr><td>Um gate que não rodou nunca vira “passou”</td><td>Quatro desfechos distintos, e os dois negativos carregam o motivo</td></tr>
+    <tr><td>Nada é apagado que o deck não tenha colocado</td><td>Conferência de hash no unmount — e o que foi editado é reportado, nunca deletado</td></tr>
+    <tr><td>Nada some sem ter sido levado de volta primeiro</td><td><code>deck doctor</code> reporta o que ainda não passou pelo <code>deck save</code></td></tr>
+    <tr><td>Um pack não sobrescreve uma entrada do núcleo por acidente</td><td>Colisão sem <code>overrides: true</code> é recusada</td></tr>
+    <tr><td>Uma tarefa já reivindicada por outra pessoa é recusada</td><td><code>deck board claim</code>, com a escrita lida de volta</td></tr>
+    <tr><td>Um nome reivindicado por dois packs de uma coleção é recusado</td><td>Escolher um seria adivinhar a ordem que o filesystem devolveu</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="registra-nao-impoe">Registrar a arquitetura, e não calculá-la, é escolha</h3>
+<p>
+  O deck <strong>registra</strong> como uma mudança se propaga —
+  <code>impacts:</code>, <code>couples:</code>, <code>role</code>,
+  <code>downstream</code> — e não a calcula. Não pode: o motor nunca ouviu falar
+  de um <code>import</code>, de um alvo Bazel ou de uma receita, e dar-lhe esse
+  conhecimento seria exatamente o que a separação motor/pack existe para manter
+  de fora. Uma palavra de domínio no código do motor é bug.
+</p>
+<p>
+  <strong>Isso não deixa a imposição de fora — deixa-a no seu domínio.</strong>
+  O comando de um gate resolve <code>${repo.impacts}</code>, então um pack roda
+  o que quer que calcule dependências de verdade no seu ecossistema e reprova
+  quando a aresta declarada e a observada discordam:
+</p>
+<pre><code>gates:
+  - id: arestas-reais
+    title: o grafo declarado bate com o observado
+    from_level: static
+    per_repo: "import-linter --config .importlinter --target ${repo.impacts}"</code></pre>
+<p>
+  <code>go list</code>, <code>bitbake -g</code>, <code>madge</code>,
+  <code>jdeps</code> — o mecanismo é o mesmo. O deck não sabe qual é o seu; o
+  seu pack sabe.
+</p>
+
+<h3 id="criterios-livres">Critérios de aceite são texto livre</h3>
+<p>
+  O deck confere que um critério foi <strong>marcado</strong> como aceito,
+  comparando a string exata — não que ele foi <strong>cumprido</strong>. E uma
+  tarefa vinda de um rastreador não carrega critério nenhum, então a guarda não
+  tem o que segurar. O bundle diz isso em vez de silenciar: “<em>the task
+  declares no acceptance criteria, so nothing states what it was for</em>”.
+</p>
+
+<h3 id="maturidade">Onde o deck ainda não foi</h3>
+<p>
+  Três coisas que nenhuma quantidade de teste substitui, e que dizem mais sobre
+  a idade do projeto do que sobre o desenho:
+</p>
+<div class="scroll"><table>
+  <thead><tr><th>Onde</th><th>O que existe hoje</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Execução autônoma com algo em jogo</strong></td><td>O workflow <code>/deck:board</code> rodou fim a fim num quadro-caixa-de-areia: onze agentes, quatro grupos, tudo comitado e verde. Nunca foi apontado para um workspace do qual alguém dependa.</td></tr>
+    <tr><td><strong>Rastreadores além do GitHub</strong></td><td>O GitHub é exercitado contra o serviço real. Jira, GitLab e Gerrit apenas contra um dublê local — escrito a partir do que aquelas APIs documentam, não do que o deck envia.</td></tr>
+    <tr><td><strong>Release e distribuição</strong></td><td>Versionamento, empacotamento e publicação de artefato mal são modelados: <code>push_policy</code> e <code>changelog</code> são tudo.</td></tr>
+  </tbody>
+</table></div>
+<p>
+  O que é defeito ou lacuna acionável não mora nesta página — mora no
+  <a href="https://github.com/devfilipe/deck/issues">issue tracker</a>, onde
+  pode ser discutido, priorizado e fechado. Uma página que lista pendências
+  envelhece; um tracker é feito para isso.
+</p>
+
+<h3 id="propriedades">Três coisas que são propriedade, não pendência</h3>
+<div class="scroll"><table>
+  <thead><tr><th>Propriedade</th><th>Por que é escolha</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Nenhum orçamento sobre uma tendência</strong></td><td>Uma tendência que reprova uma entrega vira um limiar — e um que ninguém escolheu. A série é reportada com direção e mantida apartada do julgamento.</td></tr>
+    <tr><td><strong>Nenhuma memória entre tarefas</strong></td><td>A única coisa que atravessa tarefas é a série de métricas, e ela é deliberadamente só números: nenhuma lição, nenhum contexto, nada que um agente pudesse confundir com conselho.</td></tr>
+    <tr><td><strong>Gates provam o que afirmam, e nada mais</strong></td><td>Uma execução longa pode passar em todo gate que existe e ainda assim derivar, porque nenhum laço vigia o vigia. A escada precisa ser estendida à medida que o trabalho ensina o que ela deixou passar; <code>deck pack review</code> reporta o gate que rodou e nunca pegou nada.</td></tr>
+  </tbody>
+</table></div>
+
+
+<!-- ==================================================================== -->
+<h2 id="estado"><span class="num">20.</span>Estado do projeto<a class="anchor" href="#estado">#</a></h2>
+
+<p>
+  A tabela abaixo separa o que foi construído e exercitado do que foi escrito e
+  ainda não provado, e do que está desenhado e não construído. É a única
+  distinção que importa para decidir se vale o seu tempo.
+</p>
+<p>
+  Quantas issues estão abertas, e de que tipo, está
+  <a href="https://github.com/devfilipe/deck/issues">no tracker</a> — que é onde
+  isso vive e onde está sempre certo. Um número escrito aqui envelheceria
+  sozinho, e um número errado numa página é pior que nenhum.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Construído e testado</th><th>Escrito, ainda não provado</th><th>Desenhado, não construído</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Resolução de workspace · importadores de registry · grafo de impacto · scopes · toggles e perfis · criação, composição e vendorização de packs · mount · escada de gates · medições ao longo do tempo · planejamento de quadro · o bundle de prontidão para merge · relatório de custo · console, status line e superfície tmux</td>
+      <td>O workflow <code>/deck:board</code> contra um workspace do qual alguém dependa — ele rodou fim a fim duas vezes, num quadro-caixa-de-areia. Rastreadores além do GitHub, exercitados só contra o dublê local.</td>
+      <td>Packs dinâmicos: artefatos escopados por tarefa que um agente escreve e um humano promove. RAG/CAG: declarar qual fonte de conhecimento vale para qual repositório.</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3 id="como-se-verifica">Como o projeto se verifica</h3>
+<p>
+  O deck se verifica com o próprio mecanismo. São <strong>seis gates</strong>,
+  em ordem de escada — <code>commit-shape</code>, <code>lint</code>,
+  <code>catalog</code>, <code>docs</code>, <code>smoke</code>,
+  <code>tour</code> — declarados em
+  <code>_workspaces/all/default/config/gates.yaml</code> de <code>deck-ai-packs</code>:
+</p>
+<pre><code>./plugins/deck/bin/deck gate run --task &lt;sua-branch&gt;</code></pre>
+<p>
+  A suíte constrói workspaces sintéticos em diretórios temporários, então roda em
+  qualquer lugar e não toca em nada que seja seu:
+</p>
+<pre><code><span class="c">$ ./ci/smoke.sh</span>
+-----------------------------------------------
+711 checks, 0 failures</code></pre>
+<p class="measured">Número lido da execução, não de memória. É o total no commit em que esta página foi escrita.</p>
+<p>
+  Um dos seis gates é sobre esta documentação:
+  <code>ci/docs-cover.py</code> reprova quando um documento
+  nomeia um comando que a CLI não tem, quando a CLI tem um comando que documento
+  nenhum nomeia, quando um documento aponta para um arquivo que não existe, ou
+  quando um documento declara um total de checagens diferente do que a suíte tem.
+  Foi escrito porque este projeto publicou um total errado quatro vezes num único
+  dia de trabalho — <em>é um número, é conferível, e pela regra do próprio
+  projeto isso faz dele um gate e não um hábito</em>.
+</p>
+<div class="note">
+  <p>
+    Vale registrar o escopo: esse gate lê os seis documentos em inglês.
+    <strong>Esta página em português não está sob ele</strong> — os comandos e as
+    saídas aqui foram verificados executando cada um deles, o que é o mesmo
+    padrão, mas aplicado à mão.
+  </p>
+</div>
+
+<h3 id="regras-do-projeto">As regras que o deck impõe a si mesmo</h3>
+<p>
+  Elas moram em <code>_workspaces/all/default/rules/</code> de <code>deck-ai-packs</code> e são o melhor retrato do
+  que a ferramenta acredita:
+</p>
+<ul>
+  <li><strong>Nunca declare um número que você não mediu.</strong> Nada de “tipicamente três repositórios”, nada de porcentagem inventada. Se não foi contado, do código ou de uma execução, não entra.</li>
+  <li><strong>Diga o que não aconteceu.</strong> Um gate que nunca rodou é reportado, não omitido. Um stub é rotulado como stub. Um resultado parcial é parcial na primeira frase, não numa ressalva no fim.</li>
+  <li><strong>Comentários carregam a razão, não a repetição.</strong> Um comentário dizendo o que a próxima linha faz é ruído. Escreva o que um leitor não consegue recuperar: por que isto e não a alternativa óbvia, o que quebrou quando foi feito do outro jeito.</li>
+  <li><strong>Um defeito corrigido vem com a checagem que o teria pego</strong>, no mesmo commit — e a checagem tem de ser mostrada falhando sem a correção.</li>
+  <li><strong>Leia o código de saída, não o do pipe.</strong> <code>cmd | tail -3; echo $?</code> devolve o status do <code>tail</code>, que é sempre 0. Toda afirmação falsa de “sai com 0” na história deste repositório veio dessa linha.</li>
+  <li><strong>Nada de um workspace que não é seu para publicar.</strong> O deck é desenvolvido contra workspaces reais de empregadores e clientes; nada disso entra numa issue pública — nem nomes de organização ou produto, nem hostnames internos, chaves de projeto, ids de ticket ou nomes de usuário. Até o idioma conta: uma mensagem de erro no idioma errado identifica uma instância tão bem quanto um hostname.</li>
+</ul>
+
+
+<!-- ==================================================================== -->
+<h2 id="para-quem"><span class="num">21.</span>É para você?<a class="anchor" href="#para-quem">#</a></h2>
+
+<div class="scroll"><table>
+  <thead><tr><th>Provavelmente sim, se…</th><th>Provavelmente não, se…</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>
+        <ul style="margin:0;padding-left:1.1rem">
+          <li>uma mudança sua toca dois ou mais repositórios com frequência, e esquecer um deles já custou uma noite;</li>
+          <li>revisar a saída de um agente cansa porque você refaz o raciocínio dele em vez de conferir fatos;</li>
+          <li>a mesma decisão volta em toda tarefa e a resposta depende de quem perguntou;</li>
+          <li>você quer que “verificado” seja um registro em disco, e não uma afirmação;</li>
+          <li>você já usa Claude Code e quer estender o que ele sabe, não substituí-lo.</li>
+        </ul>
+      </td>
+      <td>
+        <ul style="margin:0;padding-left:1.1rem">
+          <li>você quer que a ferramenta <em>calcule</em> a sua arquitetura: ela
+              registra as arestas e roda o que <em>você</em> declarar para
+              conferi-las (<a href="#registra-nao-impoe">§19</a>), mas não lê o
+              seu código para descobri-las;</li>
+          <li>você quer um orquestrador de agentes: isso é o Claude Code, e o deck deliberadamente não constrói um;</li>
+          <li>você quer conhecimento de domínio pronto de fábrica: o deck traz um motor e nenhum comando seu;</li>
+          <li>você precisa de um produto maduro: o deck é novo, e a
+              <a href="https://github.com/devfilipe/deck/releases">página de releases</a>
+              diz quão novo melhor do que esta frase diria;</li>
+          <li>você trabalha num repositório só e a cadeia inteira já cabe numa cabeça.</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3 id="proximos-passos">O que fazer em seguida</h3>
+<ol>
+  <li>
+    <strong>Rode o tour.</strong> Ele constrói um workspace de quatro
+    repositórios e um pack do zero num diretório temporário, e caminha de
+    <code>deck pack new</code> até uma entrega verificada com a evidência em
+    disco. Não precisa de configuração e não toca em nada que é seu.
+    <pre style="margin-top:.6rem"><code>git clone https://github.com/devfilipe/deck.git ~/tools/deck
+~/tools/deck/docs/tour.sh</code></pre>
+  </li>
+  <li>
+    <strong>Classifique o material que você já tem</strong> pelas quatro
+    naturezas de <a href="#quatro-naturezas">§2</a>. A maioria dos guias de
+    estilo é três documentos em um: uma configuração de formatador que ninguém
+    extraiu, um punhado de invariantes de verdade, e uma lista de decisões que
+    nunca foram escritas como tal.
+  </li>
+  <li>
+    <strong>Mova tudo que é mecânico para gates primeiro.</strong> É a vitória
+    mais barata e faz você parar de pagar contexto por isso.
+  </li>
+  <li>
+    <strong>Escreva as arestas.</strong> Sem elas o grafo não responde nada, e o
+    grafo é o que um agente não consegue descobrir sozinho.
+  </li>
+  <li>
+    <strong>Estenda a escada toda vez que algo passar por ela.</strong> Um
+    defeito que um gate não pegou é um gate que você ainda não tem. Este é o
+    passo que importa ao longo de um ano: uma escada que nunca cresce é uma
+    escada que mede menos a cada mês.
+  </li>
+</ol>
+
+
+<!-- ==================================================================== -->
+<h2 id="casos"><span class="num">22.</span>Casos de uso, com os comandos de cada um<a class="anchor" href="#casos">#</a></h2>
+
+<p>
+  Sete situações que aparecem de verdade. Cada uma traz a sequência exata, e o
+  que muda em relação às outras — porque o que separa os casos não é o comando,
+  é a decisão que vem antes dele. Comece pelo <a href="#caso-0">caso 0</a> se o
+  seu projeto ainda não usa deck.
+</p>
+
+<h3 id="caso-0">0 · Trazer um projeto que não usa deck</h3>
+<p>
+  O caso mais importante, e aquele em que quase todo mundo erra pela mesma
+  razão: tenta escrever o pack inteiro antes de rodar qualquer coisa.
+  <strong>Não escreva.</strong> O laço do caso 5 preenche o pack sozinho, tarefa
+  a tarefa. O que você tem que fazer no primeiro dia é bem menos que parece.
+</p>
+
+<p><strong>Passo 1 — deixe o deck ler o que já existe.</strong></p>
+<pre><code>   mkdir ~/work/xyz-ai-packs && git -C ~/work/xyz-ai-packs init
+
+   cd ~/work/xyz                 ◄── a raiz onde seus repositórios já estão
+   deck setup --packs-root ~/work/xyz-ai-packs/packs --create-packs</code></pre>
+<pre><code>1  What is in this workspace?
+     3 git repositories found:  api · web · worker
+
+2  Where will the knowledge live?
+     Creating a pack collection at ~/work/xyz-ai-packs/packs.
+
+3  Writing the descriptor
+     .../packs/_workspaces/xyz/default/workspace.yaml   ◄── versionado, é do time
+     ~/.deck/workspaces/xyz/machine.yaml                ◄── só seu, nunca versionado
+
+4  Linking packs to repositories, by name
+     linked   api      .../packs/_repos/api
+     linked   web      .../packs/_repos/web
+     linked   worker   .../packs/_repos/worker
+     shared   (every repository)   .../packs/_workspaces/xyz/default
+
+5  What only you can fill in
+     1. The `impacts` edges. A manifest declares a checkout, never a propagation.
+     2. The `targets` allowlist.</code></pre>
+<p>
+  O registro o deck deriva; ele lê <code>repo</code>, <code>.gitmodules</code> ou
+  o campo <code>workspaces</code> de um <code>package.json</code>, e cai em
+  “diretórios que são repositórios git” quando nenhum deles serve.
+</p>
+
+<p><strong>Passo 2 — as arestas. É a única coisa que ninguém deriva por você.</strong></p>
+<pre><code>   # no descriptor: packs/_workspaces/&lt;nome&gt;/default/workspace.yaml
+   repos:
+     api:    { path: api,    impacts: [web] }   ◄── mudar api obriga a revisitar web
+     web:    { path: web,    impacts: [] }
+     worker: { path: worker, impacts: [] }
+
+   deck impact api        ◄── confira que a cadeia é a que você tem na cabeça</code></pre>
+<p>
+  Um manifesto declara um <em>checkout</em>, nunca uma <em>propagação</em>. Se
+  você não tem certeza, <code>deck propose impacts --repos api web</code>
+  rascunha — mas custa dinheiro e produz proposta, não edição.
+</p>
+
+<p><strong>Passo 3 — um gate que você já tem. Um, não seis.</strong></p>
+<pre><code>   # em ~/work/xyz-ai-packs/packs/_workspaces/all/default/config/gates.yaml
+   gates:
+     - id: lint
+       title: o lint que você já roda
+       from_level: static
+       per_repo: "npm run lint"        ◄── o comando que você já digita hoje
+
+   deck gate run --task PRIMEIRA --level static</code></pre>
+<p>
+  Isto é o primeiro valor real, e chega antes de qualquer regra existir: o
+  comando que você já rodava agora deixa evidência em disco, por repositório,
+  com o degrau alcançado dito em voz alta.
+</p>
+
+<p><strong>Passo 4 — versione a coleção, e só então convide alguém.</strong></p>
+<pre><code>   cd ~/work/xyz-ai-packs && git add -A && git commit && git push
+
+   # cada colega, uma vez:
+   git clone &lt;xyz-ai-packs&gt;
+   deck init            ◄── semeia o .deck/ da máquina dele
+   deck doctor          ◄── e diz o que ainda falta na máquina dele</code></pre>
+
+<div class="note">
+  <span class="label">O que NÃO fazer no primeiro dia</span>
+  <p>
+    Não escreva regras. Não preencha os 27 toggles. Não crie um pack por
+    repositório com conteúdo. Uma regra escrita antes de doer é um palpite sobre
+    o que a IA vai errar — e você paga contexto por ela em toda leitura de
+    arquivo que casar. Deixe a primeira regra nascer do
+    <a href="#caso-5">caso 5</a>: a IA erra, você corrige, o
+    <code>deck save</code> leva a correção para a coleção, e aí ela existe
+    porque foi necessária.
+  </p>
+</div>
+
+<pre><code>   dia 1     registro + arestas + 1 gate            ← o mínimo que dá valor
+   dia 3     a IA errou algo duas vezes → 1ª regra
+   semana 2  uma decisão que volta sempre → 1º toggle
+   mês 2     um pack por repositório, com o que aquele repositório ensinou
+
+   o pack cresce pelo uso, não pelo planejamento</code></pre>
+
+<h3 id="caso-1">1 · Corrigir um documento</h3>
+<p>O caso mais comum, e aquele em que a escada inteira é desperdício.</p>
+<pre><code>   deck mount --task DOC-3 --repos api --no-expand
+        │      └─ --no-expand: um README não propaga; não arraste os vizinhos
+        ▼
+   (a sessão trabalha)
+        ▼
+   deck gate run --task DOC-3 --level static
+        │      └─ lint e nada mais. O relatório DIZ que parou no static,
+        │         então a decisão fica no registro
+        ▼
+   deck unmount --task DOC-3</code></pre>
+<p>
+  Sem <code>save</code>: nada de conhecimento novo apareceu. Sem
+  <code>bundle</code>: não há cadeia para um revisor reconstruir.
+</p>
+
+<h3 id="caso-2">2 · Mudar um schema que três repositórios consomem</h3>
+<p>O caso para o qual o deck existe. A pergunta não é como mudar, é o que mais tem que mudar junto.</p>
+<pre><code>   deck impact api-schema        ◄── PRIMEIRO. Antes de tocar em qualquer coisa
+   ┌────────────────────────────────────────────────────┐
+   │ 1. api-schema   2. api-server   3. web-client       │
+   │ 4. e2e-suite    (downstream — acompanha, não gera)  │
+   └────────────────────────────────────────────────────┘
+        ▼
+   deck toggle ask-plan --stage plan
+        │      └─ o que ainda precisa ser decidido, como perguntas prontas.
+        │         Num contrato publicado, `api_compat` é uma delas
+        ▼
+   deck mount --task API-7 --repos api-schema --brief "campo `cursor` em /items"
+        │      └─ SEM --no-expand: os quatro são montados, não um
+        ▼
+   (a sessão trabalha, na ordem que o impact deu)
+        ▼
+   deck gate run --task API-7 --level behavior
+        │      └─ contrato publicado é o único caso em que "funciona"
+        │         precisa ser medido contra o sistema rodando
+        ▼
+   deck save --task API-7   ·   deck bundle --task API-7   ·   deck unmount --task API-7</code></pre>
+
+<h3 id="caso-3">3 · Um hotfix, com a escada baixada de propósito</h3>
+<p>Produção caiu. Você vai cortar caminho — a questão é que o corte fique escrito.</p>
+<pre><code>   deck mount --task FIX-9 --repos api-server --brief "NPE em /items quando cursor é nulo"
+        ▼
+   deck gate run --task FIX-9 --level build
+        │      └─ deliberadamente abaixo do padrão (deploy). O relatório
+        │         registra o degrau alcançado; ninguém depois vai achar
+        │         que estava verificado até o fim
+        ▼
+   deck bundle --task FIX-9
+        │      └─ e o bundle DIZ o que não foi checado. É isso que
+        │         transforma o atalho em decisão, e não em omissão
+        ▼
+   deck save --task FIX-9   ·   deck unmount --task FIX-9</code></pre>
+
+<h3 id="caso-4">4 · Entrar num time que já usa deck</h3>
+<p>Você clonou hoje. Não escreva nada — pergunte.</p>
+<pre><code>   git clone &lt;os repos&gt;   ·   git clone &lt;o xyz-ai-packs&gt;
+        ▼
+   deck init                     cria o .deck/ desta máquina, semeado do
+        │                        template que a coleção traz
+        ▼
+   (preencher só três campos: packs_root · paths · targets)
+        ▼
+   deck doctor                   o que falta, e o comando que resolve cada coisa
+   deck info                     o registry, os papéis, quem é downstream
+   deck packs                    qual conhecimento se aplica, e em que ordem
+   deck toggle list              o que já foi decidido, e de onde veio cada valor
+   deck impact &lt;qualquer repo&gt;   o que uma mudança ali alcança</code></pre>
+
+<h3 id="caso-5">5 · A IA descobriu algo que o time deveria saber</h3>
+<p>O caso que faz a segunda tarefa custar menos que a primeira.</p>
+<pre><code>   (durante a sessão, a IA corrige uma regra errada, ou escreve uma nova)
+        ▼
+   deck doctor
+   ┌──────────────────────────────────────────────────────────────┐
+   │ !! API-7  unsaved: 1 edited, 1 written here —                │
+   │           nothing in the collection holds them yet           │
+   └──────────────────────────────────────────────────────────────┘
+        ▼
+   deck save --task API-7 --dry-run    ◄── SEMPRE isto antes, nas primeiras vezes:
+        │                                  o save escreve no repositório do time
+        ▼
+   deck save --task API-7
+   ┌──────────────────────────────────────────────────────────────┐
+   │ saved  changed  &lt;coll&gt;/_workspaces/all/default/rules/estilo.md│
+   │ saved  new      &lt;coll&gt;/_repos/api/rules/paginacao.md          │
+   └──────────────────────────────────────────────────────────────┘
+        ▼
+   cd &lt;xyz-ai-packs&gt; && git diff        ◄── você revisa. É aqui que vira do time
+   git commit</code></pre>
+
+<h3 id="caso-6">6 · Duas pessoas, ou dois agentes, ao mesmo tempo</h3>
+<p>O que impede duas pessoas de produzirem um merge que ninguém consegue revisar.</p>
+<pre><code>   deck board list               o que existe, e o que já tem dono
+        ▼
+   deck board claim T-14         ◄── a reivindicação vai para o RASTREADOR,
+        │                            e é lida de volta. Já reivindicada
+        │                            por outra pessoa, é recusada
+        ▼
+   deck board plan               o que pode rodar ao mesmo tempo sem colidir
+   ┌──────────────────────────────────────────────────────────────┐
+   │ grupo 1: T-14, T-19    (não se tocam)                        │
+   │ grupo 2: T-16          (edita o mesmo repo que T-14)         │
+   └──────────────────────────────────────────────────────────────┘
+        ▼
+   deck mount --task T-14 ...    cada tarefa tem o seu mount e o seu manifesto
+        ▼
+   deck board done T-14</code></pre>
+<div class="note">
+  <span class="label">Um mount é segurado, não possuído</span>
+  <p>
+    Cada sessão Claude que abre sob a mesma tarefa toma um <em>hold</em>, pelo
+    hook <code>SessionStart</code> — você nunca digita isso. Ao terminar, ela
+    solta apenas o dela, e o mount só é retirado quando não sobra nenhum. Fechar
+    um painel não arranca as regras do painel que ainda trabalha.
+  </p>
+</div>
+
+
+<!-- ==================================================================== -->
+<h2 id="indice-comandos"><span class="num">23.</span>Índice de comandos<a class="anchor" href="#indice-comandos">#</a></h2>
+
+<p>
+  Os 33 comandos de primeiro nível. Sete deles têm subcomandos, somando
+  <strong>63 comandos executáveis</strong> ao todo. Cada um está explicado, com
+  todas as suas opções, na seção que a última coluna aponta.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Comando</th><th>Responde</th><th>Seção</th></tr></thead>
+  <tbody>
+    <tr><td><code>deck root</code></td><td>qual é a raiz resolvida</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck info</code></td><td>resumo do workspace</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck repos</code></td><td>os repositórios no descriptor</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck path</code></td><td>o caminho absoluto de um repositório</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck get</code></td><td>um campo do descriptor, por chave pontuada</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck packs</code></td><td>quais packs estão em jogo, e quem sobrescreve quem</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck paths</code></td><td>diretórios que o workspace usa e não muda</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck targets</code></td><td>a allowlist de implantação</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck scopes</code></td><td>os subconjuntos nomeados do registry</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck scope</code></td><td>um scope: repositórios, quadro, postura</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck impact</code></td><td>o que uma mudança alcança, em ordem</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck order</code></td><td>a ordem topológica de um conjunto</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck setup</code></td><td>de um workspace despreparado a um utilizável</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck init</code></td><td>criar <code>.deck/</code> a partir dos templates</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck import</code></td><td>derivar o registry do layout da árvore</td><td><a href="#mapa">§7</a></td></tr>
+    <tr><td><code>deck toggle</code> <span class="pill">7 subcomandos</span></td><td>ler, explicar e registrar decisões</td><td><a href="#decisoes">§8</a></td></tr>
+    <tr><td><code>deck mount</code></td><td>colocar os packs de um pedaço de trabalho</td><td><a href="#contexto">§9</a></td></tr>
+    <tr><td><code>deck unmount</code></td><td>retirar o que foi colocado</td><td><a href="#contexto">§9</a></td></tr>
+    <tr><td><code>deck hold</code></td><td>registrar esta sessão como seguradora do mount</td><td><a href="#contexto">§9</a></td></tr>
+    <tr><td><code>deck mounts</code></td><td>o que está montado agora</td><td><a href="#contexto">§9</a></td></tr>
+    <tr><td><code>deck pack</code> <span class="pill">7 subcomandos</span></td><td>criar e conferir os packs de conhecimento</td><td><a href="#packs">§10</a></td></tr>
+    <tr><td><code>deck gate</code> <span class="pill">3 subcomandos</span></td><td>a escada de verificação</td><td><a href="#prova">§11</a></td></tr>
+    <tr><td><code>deck metrics</code> <span class="pill">2 subcomandos</span></td><td>o que os gates mediram, e para onde vai</td><td><a href="#tendencia">§12</a></td></tr>
+    <tr><td><code>deck board</code> <span class="pill">10 subcomandos</span></td><td>as tarefas, e o que pode rodar junto</td><td><a href="#quadro">§13</a></td></tr>
+    <tr><td><code>deck bundle</code></td><td>o que um revisor lê em vez do diff</td><td><a href="#entrega">§14</a></td></tr>
+    <tr><td><code>deck cost</code></td><td>tokens e dólares estimados</td><td><a href="#conta">§15</a></td></tr>
+    <tr><td><code>deck ask</code> <span class="pill">5 subcomandos</span></td><td>a pergunta que o catálogo não tem</td><td><a href="#perguntas">§16</a></td></tr>
+    <tr><td><code>deck propose</code> <span class="pill">4 subcomandos</span></td><td>pedir ao Claude o que um parser não deriva</td><td><a href="#modelo">§17</a></td></tr>
+    <tr><td><code>deck doctor</code></td><td>diagnosticar o workspace</td><td><a href="#superficies">§18</a></td></tr>
+    <tr><td><code>deck console</code></td><td>o REPL do plano de controle</td><td><a href="#superficies">§18</a></td></tr>
+    <tr><td><code>deck ui</code></td><td>o plano de controle ao lado do agente</td><td><a href="#superficies">§18</a></td></tr>
+    <tr><td><code>deck statusline</code></td><td>o plano de controle dentro da janela do agente</td><td><a href="#superficies">§18</a></td></tr>
+  </tbody>
+</table></div>
+
+<details class="more">
+  <summary>Os 38 subcomandos, em uma lista</summary>
+  <div class="scroll"><table>
+    <tbody>
+      <tr><td><code>deck toggle</code></td><td><code>list</code> · <code>get</code> · <code>explain</code> · <code>set</code> · <code>profile</code> · <code>ask-plan</code> · <code>validate</code></td></tr>
+      <tr><td><code>deck pack</code></td><td><code>new</code> · <code>review</code> · <code>list</code> · <code>sources</code> · <code>add</code> · <code>update</code> · <code>validate</code></td></tr>
+      <tr><td><code>deck board</code></td><td><code>list</code> · <code>plan</code> · <code>show</code> · <code>claim</code> · <code>ask-plan</code> · <code>template</code> · <code>done</code> · <code>new</code> · <code>whoami</code> · <code>why</code></td></tr>
+      <tr><td><code>deck gate</code></td><td><code>list</code> · <code>run</code> · <code>report</code></td></tr>
+      <tr><td><code>deck metrics</code></td><td><code>list</code> · <code>show</code></td></tr>
+      <tr><td><code>deck propose</code></td><td><code>impacts</code> · <code>toggle</code> · <code>pack</code> · <code>apply</code></td></tr>
+      <tr><td><code>deck ask</code></td><td><code>new</code> · <code>list</code> · <code>show</code> · <code>resolve</code> · <code>fold</code></td></tr>
+    </tbody>
+  </table></div>
+</details>
+
+
+<!-- ==================================================================== -->
+<h2 id="numeros"><span class="num">24.</span>Os números desta página, e onde foram medidos<a class="anchor" href="#numeros">#</a></h2>
+
+<p>
+  A regra do projeto — <em>nunca declare um número que você não mediu</em> — vale
+  para esta página também. Todo número aqui foi lido de uma execução ou contado
+  do código, no commit em que ela foi escrita.
+</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>Número</th><th>Onde foi medido</th></tr></thead>
+  <tbody>
+    <tr><td>checagens na suíte</td><td><code>./ci/smoke.sh</code>, que imprime o próprio total. O número vive num lugar só — <code>CONTRIBUTING.md</code> — e o gate <code>docs</code> recusa uma segunda cópia. Ele já esteve em quatro documentos, e toda mudança que acrescentava uma checagem editava os quatro</td></tr>
+    <tr><td>33 comandos de primeiro nível</td><td><code>deck --help</code>; <code>python3 ci/docs-cover.py</code> imprime <code>33 commands checked</code></td></tr>
+    <tr><td>7 comandos com subcomandos, 38 subcomandos, 63 executáveis</td><td>contados percorrendo <code>--help</code> de cada nível</td></tr>
+    <tr><td>27 decisões no catálogo do núcleo, 5 perfis</td><td><code>deck toggle validate --strict</code> imprime <code>27 toggles, 5 profiles</code>; o <code>28</code> visto em <code>deck doctor</code> no tour inclui a que o pack do tour acrescenta</td></tr>
+    <tr><td>4 degraus da escada</td><td><code>deck gate list</code> imprime <code>static -&gt; build -&gt; deploy -&gt; behavior</code></td></tr>
+    <tr><td>4 desfechos de gate</td><td>saída real de <code>deck gate run</code>: <code>ok</code>, <code>FAIL</code>, <code>??</code> (could not run), <code>--</code> (not applicable / not attempted)</td></tr>
+    <tr><td>7 camadas de precedência</td><td>lidas de <code>plugins/deck/deck/toggles.py</code>, função <code>layers()</code></td></tr>
+    <tr><td>11 skills no plugin</td><td>o conteúdo de <code>plugins/deck/skills/</code></td></tr>
+    <tr><td>6 gates no pack do próprio deck</td><td><code>_workspaces/all/default/config/gates.yaml</code> de <code>deck-ai-packs</code></td></tr>
+    <tr><td>Versão 0.1.0</td><td><code>deck --version</code></td></tr>
+    <tr><td>Teto padrão de US$ 1.50 em <code>propose</code></td><td><code>DEFAULT_BUDGET</code> em <code>plugins/deck/deck/assist.py</code></td></tr>
+    <tr><td>2 execuções fim a fim de <code>/deck:board</code>, 5 tarefas, 11 agentes, 4 grupos</td><td>relatado nos documentos do projeto; <strong>não medido por esta página</strong></td></tr>
+  </tbody>
+</table></div>
+
+<p>
+  Todos os exemplos de saída marcados como “saída real” foram produzidos
+  executando o comando: no tour (<code>./docs/tour.sh --fast</code>) ou num
+  workspace sintético de três repositórios construído num diretório temporário
+  para esta finalidade. Nomes de repositório, de tarefa e de host nos exemplos
+  são inventados; qualquer coisa parecida com um endereço usa
+  <code>example.com</code>.
+</p>
+
+<footer>
+  <p>
+    <strong>deck</strong> — MIT © Filipe Denaur de Moraes ·
+    <a href="https://github.com/devfilipe/deck">github.com/devfilipe/deck</a>
+  </p>
+  <p>
+    Esta página consolida, em português do Brasil, os documentos em inglês do
+    repositório: <code>README.md</code>, <code>DESIGN.md</code>,
+    <code>PACKS.md</code>, <code>WALKTHROUGH.md</code>,
+    <code>FOUNDATIONS.md</code>, <code>CONTRIBUTING.md</code> e as regras em
+    <code>_workspaces/all/default/rules/</code> de <code>deck-ai-packs</code>. Eles continuam sendo a fonte
+    normativa: onde esta página e um deles discordarem, o repositório está
+    certo — e a discordância é um defeito
+    (<a href="https://github.com/devfilipe/deck/issues/new/choose">abra uma issue</a>).
+  </p>
+  <p>
+    Um problema de segurança vai por
+    <a href="https://github.com/devfilipe/deck/blob/main/SECURITY.md">SECURITY.md</a>,
+    nunca por uma issue pública.
+  </p>
+</footer>
+
+</main>
+</div>
+</div>
+</html>

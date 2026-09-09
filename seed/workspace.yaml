@@ -1,0 +1,45 @@
+# Seed for .deck/workspace.yaml. Copy it once:
+#     cp seed/workspace.yaml .deck/workspace.yaml
+#     cp seed/toggles.yaml   .deck/toggles.yaml
+#
+# `.deck/` is per machine and never versioned — deck says so about every
+# workspace, and a tool that exempts itself from its own rule is a tool nobody
+# should believe.
+
+# The registry below declares `impacts:` and no `couples:`. That is not an
+# omission: nothing in this workspace drives deck back. deck leads, deck-acme
+# and deck-exercises follow, and every edge here has a direction. The
+# per-repository fields, `couples:` among them, are documented in
+# plugins/deck/templates/workspace/workspace.yaml.
+
+version: 1
+packs_root: ../deck-ai-packs/packs
+requires_files:
+- plugins/deck/bin/deck
+- ci/smoke.sh
+repos:
+  deck:
+    path: .
+    role: the engine — resolution, impact graph, toggles, gates
+    remote_id: devfilipe/deck
+    lint: ruff check . && ruff format --check .
+    build_target: deck
+    impacts:
+    - deck-acme
+    - deck-exercises
+  deck-acme:
+    path: ../deck-acme
+    role: example pack and demos; the agnosticism test
+    remote_id: devfilipe/deck-acme
+    downstream: true
+    impacts: []
+  deck-exercises:
+    path: ../deck-exercises
+    role: the published exercises — must follow the tool, never lead it
+    downstream: true
+    impacts: []
+targets: []
+backlog:
+- type: tasks
+  file: docs/board.yaml
+packs: []
